@@ -13,3 +13,11 @@ Installation :
 ```sh
 git clone https://github.com/Anthony-55/maestro.git
 ```
+
+Mise à jour :
+-------------
+
+```sh
+git pull
+```
+
