@@ -3,9 +3,9 @@
  
  Pré-requis :
  ------------
-	* [Python](http://www.python.org) (3+)
-	* [Paho-mqtt](https://pypi.org/project/paho-mqtt/)
-	* [Websocket](https://pypi.org/project/websocket_client/)
+* [Python](http://www.python.org) (3+)
+* [Paho-mqtt](https://pypi.org/project/paho-mqtt/)
+* [Websocket](https://pypi.org/project/websocket_client/)
 	
 Installation :
 --------------
