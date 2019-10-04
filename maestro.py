@@ -11,6 +11,30 @@ import time
 import sys
 import os
 import json
+import logging
+from logging.handlers import RotatingFileHandler
+
+# création de l'objet logger qui va nous servir à écrire dans les logs
+logger = logging.getLogger()
+# on met le niveau du logger à DEBUG, comme ça il écrit tout
+logger.setLevel(logging.DEBUG)
+# création d'un formateur qui va ajouter le temps, le niveau
+# de chaque message quand on écrira un message dans le log
+formatter = logging.Formatter('%(asctime)s :: %(levelname)s :: %(message)s')
+# création d'un handler qui va rediriger une écriture du log vers
+# un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
+file_handler = RotatingFileHandler('activity.log', 'a', 1000000, 1)
+# on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
+# créé précédement et on ajoute ce handler au logger
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+ 
+# création d'un second handler qui va rediriger chaque écriture de log
+# sur la console
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.DEBUG)
+logger.addHandler(stream_handler)
 
 # MCZ MAESTRO
 _IP_POELE = "192.168.120.1"
@@ -27,12 +51,17 @@ MQTT_MAESTRO = {}
 cmd_mqtt = "C|RecuperoInfo"
 bit_vie = False
 
+logger.info('Démarrage en cours du script.')
+logger.info('Anthony L. 2019')
+logger.info('Niveau de LOG : DEBUG')
+
+
 def on_connect_mqtt(client, userdata, flags, rc):
-	print("Connected With Result Code "+rc)
+	logger.info("Connecté au broker MQTT avec le code", rc)
 
 def on_message_mqtt(client, userdata, message):
 	global cmd_mqtt
-	#print("Message Recieved: "+message.payload.decode())
+	logger.info('Message MQTT reçu :', message.payload.decode())
 	cmd_mqtt = message.payload.decode()
 	cmd_mqtt = cmd_mqtt.split(",")
 	if cmd_mqtt[0]=="42":
@@ -60,9 +89,10 @@ def info_deamon():
 	print("Bit de vie :",bit_vie)
 	
 def on_message(ws, message):
+	logger.info('Message sur le serveur websocket reçu :', message)
 	global bit_vie
 	global cmd_mqtt
-	info_deamon()
+	#info_deamon()
 	from _data_ import RecuperoInfo
 	for i in range(0,len(message.split("|"))):
 			for j in range(0,len(RecuperoInfo)):
@@ -81,37 +111,40 @@ def on_message(ws, message):
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
 						else:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)
+	logger.info('Publication sur le topic MQTT',_TOPIC_PUB,'le message suivant :', MQTT_MAESTRO)
 	client.publish(_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
 	if cmd_mqtt != "C|RecuperoInfo":
 		cmd_mqtt = "C|RecuperoInfo"
 	bit_vie = not bit_vie
 
 def on_error(ws, error):
-	print(error)
+	logger.info(error)
 
 def on_close(ws):
-	print("### closed ###")
+	logger.info('Session websocket fermée')
 
 def on_open(ws):
 	def run(*args):
 		for i in range(_TEMPS_SESSION):
 			time.sleep(_INTERVALLE)
-			#print("Envoi de la commande:",cmd_mqtt)
+			logger.info("Envoi de la commande:",cmd_mqtt)
 			ws.send(cmd_mqtt)
 		time.sleep(1)
 		ws.close()
-		print("thread terminating...")
 	thread.start_new_thread(run, ())
 
+logger.info('Connection en cours au broker MQTT (IP:'+_IP_BROKER,'PORT:'+_PORT_BROKER+')')
 client = mqtt.Client()
 client.on_connect = on_connect_mqtt
 client.on_message = on_message_mqtt
 client.connect(_IP_BROKER, _PORT_BROKER)
 client.loop_start()
+logger.info('Souscription au topic',_TOPIC_SUB,'avec un Qos=1')
 client.subscribe(_TOPIC_SUB, qos=1)
 
 if __name__ == "__main__":
 	while True:
+		logger.info("Etablissement d'une nouvelle connection au serveur websocket (IP:"+_IP_POELE,"PORT:"+_PORT_POELE+")")
 		websocket.enableTrace(False)
 		ws = websocket.WebSocketApp("ws://" + _IP_POELE + ":" + _PORT_POELE,
 									on_message = on_message,
