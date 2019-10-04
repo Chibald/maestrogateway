@@ -11,7 +11,7 @@
  
 DAEMON="/opt/maestro/maestro.py" #ligne de commande du programme, attention à l'extension .py.
 daemon_OPT="-d -p -f /opt/maestro/maestro.ini"  #argument à utiliser par le programme - Remplacer Utilisateur par votre nom de login
-DAEMONUSER="pi" #utilisateur du programme
+DAEMONUSER=$USER #utilisateur du programme
 daemon_NAME="maestro.py" #Nom du programme (doit être identique à l'exécutable).
 #Attention le script est un script bash, le script ne portera donc pas l'extension .py mais .sh.
  
