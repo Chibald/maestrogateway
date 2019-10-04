@@ -5,10 +5,10 @@ if [ $(whoami) != 'root' ]; then
 	exit 1;
 fi
 
-print "Installation des dépendances"
+echo "Installation des dépendances"
 pip install paho-mqtt
 pip install websocket-client
-print "Copie des fichiers necessaires"
+echo "Copie des fichiers necessaires"
 mkdir /opt/maestro
 cp _adresses_.py /opt/maestro
 cp _data_.py /opt/maestro
