@@ -15,7 +15,7 @@ if [ ! -d "/opt/maestro" ];then
 	chmod -R 0755 $DESTINATION
 fi
 
-cp _adresses_.py /opt/maestro
+cp _config_.py /opt/maestro
 cp _data_.py /opt/maestro
 cp maestro.py /opt/maestro
 
