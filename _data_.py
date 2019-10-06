@@ -23,6 +23,8 @@ RecuperoInfo=[
 						[31, "Marche"],
 						[40, "Extinction"],
 						[41, "Refroidissement en cours"],
+						[46, "Standby"],
+						[51, "Erreur A02 - Pas de flamme"],
 						]],
 	[2,"Etat du ventilateur d'ambiance",[
 										[0, "Désactivé"],
@@ -42,6 +44,7 @@ RecuperoInfo=[
 	[14,"RPM - Vis sans fin - LIVE"],
 	[20,"Etat du mode Active"],
 	[21,"ACTIVE - Live"],
+	[25,"Mode Chronotermostato"],
 	[26,"TEMP - Consigne"],
 	[28,"TEMP - Carte mère"],
 	[32,"Heure du poêle (0-23)"],

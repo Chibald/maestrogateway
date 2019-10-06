@@ -37,16 +37,16 @@ stream_handler.setLevel(logging.DEBUG)
 logger.addHandler(stream_handler)
 
 # MCZ MAESTRO
-_IP_POELE = "192.168.120.1"
-_PORT_POELE = "81"
+from _config_ import _MCZip
+from _config_ import _MCZport
 _INTERVALLE = 1
 _TEMPS_SESSION = 60
 
 # MQTT
-_IP_BROKER = "192.168.1.18"
-_PORT_BROKER = 1883
-_TOPIC_SUB = "jeedom2"
-_TOPIC_PUB = "jeedom"
+from _config_ import _MQTT_ip
+from _config_ import _MQTT_port
+from _config_ import _MQTT_TOPIC_SUB
+from _config_ import _MQTT_TOPIC_PUB
 MQTT_MAESTRO = {}
 cmd_mqtt = "C|RecuperoInfo"
 bit_vie = False
@@ -80,11 +80,11 @@ def info_deamon():
 	print()
 	print("Informations de connection :")
 	print("MAESTRO :")
-	print("Relevé d'information sur ",_IP_POELE)
+	print("Relevé d'information sur ",_MCZip)
 	print("Intervalle de référence :",_INTERVALLE)
 	print("Temps d'une session : ",_TEMPS_SESSION)
 	print("MQTT :")
-	print("Publications des messages sur :",_IP_BROKER)
+	print("Publications des messages sur :",_MQTT_ip)
 	print()
 	print("Bit de vie :",bit_vie)
 	
@@ -103,7 +103,7 @@ def on_message(ws, message):
 								MQTT_MAESTRO[RecuperoInfo[j][1]] = RecuperoInfo[j][2][k][1]
 								break
 							else:
-								MQTT_MAESTRO[RecuperoInfo[j][1]] = ("Code inconnu", str(int(message.split("|")[i],16)))
+								MQTT_MAESTRO[RecuperoInfo[j][1]] = ('Code inconnu', str(int(message.split("|")[i],16)))
 					else:
 						if i == 6 or i == 26 or i == 28:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)/2
@@ -111,8 +111,8 @@ def on_message(ws, message):
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
 						else:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)
-	logger.info('Publication sur le topic MQTT',_TOPIC_PUB,'le message suivant :', MQTT_MAESTRO)
-	client.publish(_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
+	logger.info('Publication sur le topic MQTT',_MQTT_TOPIC_PUB,'le message suivant :', MQTT_MAESTRO)
+	client.publish(_MQTT_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
 	if cmd_mqtt != "C|RecuperoInfo":
 		cmd_mqtt = "C|RecuperoInfo"
 	bit_vie = not bit_vie
@@ -133,20 +133,20 @@ def on_open(ws):
 		ws.close()
 	thread.start_new_thread(run, ())
 
-logger.info('Connection en cours au broker MQTT (IP:'+_IP_BROKER,'PORT:'+_PORT_BROKER+')')
+logger.info('Connection en cours au broker MQTT (IP:'+_MQTT_ip,'PORT:'+_MQTT_port+')')
 client = mqtt.Client()
 client.on_connect = on_connect_mqtt
 client.on_message = on_message_mqtt
-client.connect(_IP_BROKER, _PORT_BROKER)
+client.connect(_MQTT_ip, _MQTT_port)
 client.loop_start()
-logger.info('Souscription au topic',_TOPIC_SUB,'avec un Qos=1')
-client.subscribe(_TOPIC_SUB, qos=1)
+logger.info('Souscription au topic',_MQTT_TOPIC_SUB,'avec un Qos=1')
+client.subscribe(_MQTT_TOPIC_SUB, qos=1)
 
 if __name__ == "__main__":
 	while True:
-		logger.info("Etablissement d'une nouvelle connection au serveur websocket (IP:"+_IP_POELE,"PORT:"+_PORT_POELE+")")
+		logger.info("Etablissement d'une nouvelle connection au serveur websocket (IP:"+_MCZip,"PORT:"+_MCZport+")")
 		websocket.enableTrace(False)
-		ws = websocket.WebSocketApp("ws://" + _IP_POELE + ":" + _PORT_POELE,
+		ws = websocket.WebSocketApp("ws://" + _MCZip + ":" + _MCZport,
 									on_message = on_message,
 									on_error = on_error,
 									on_close = on_close)
