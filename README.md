@@ -12,12 +12,16 @@ Installation :
 
 ```sh
 git clone https://github.com/Anthony-55/maestro.git
+cd maestro
+sudo bash install.sh
 ```
 
 Mise à jour :
 -------------
 
 ```sh
+cd maestro
 git pull
+sudo bash install.sh
 ```
 
