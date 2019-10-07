@@ -133,7 +133,7 @@ def on_open(ws):
 		ws.close()
 	thread.start_new_thread(run, ())
 
-logger.info('Connection en cours au broker MQTT (IP:'+_MQTT_ip,'PORT:'+_MQTT_port+')')
+logger.info('Connection en cours au broker MQTT (IP:'+_MQTT_ip,'PORT:'+str(_MQTT_port)+')')
 client = mqtt.Client()
 client.on_connect = on_connect_mqtt
 client.on_message = on_message_mqtt
