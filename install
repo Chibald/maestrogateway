@@ -10,10 +10,9 @@ pip install paho-mqtt
 pip install websocket-client
 echo "Copie des fichiers necessaires"
 if [ ! -d "/opt/maestro" ];then
-	mkdir $DESTINATION
-	chown -R $USER $DESTINATION
-	chmod -R 0755 $DESTINATION
-fi
+	mkdir /opt/maestro
+	chown -R $USER /opt/maestro
+	chmod -R 0755 /opt/maestro
 
 cp _config_.py /opt/maestro
 cp _data_.py /opt/maestro
