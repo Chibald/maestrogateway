@@ -57,11 +57,11 @@ logger.info('Niveau de LOG : DEBUG')
 
 
 def on_connect_mqtt(client, userdata, flags, rc):
-	logger.info("Connecté au broker MQTT avec le code", rc)
+	logger.info("Connecté au broker MQTT avec le code : " + rc)
 
 def on_message_mqtt(client, userdata, message):
 	global cmd_mqtt
-	logger.info('Message MQTT reçu :', message.payload.decode())
+	logger.info('Message MQTT reçu : ' + message.payload.decode())
 	cmd_mqtt = message.payload.decode()
 	cmd_mqtt = cmd_mqtt.split(",")
 	if cmd_mqtt[0]=="42":
@@ -89,7 +89,7 @@ def info_deamon():
 	print("Bit de vie :",bit_vie)
 	
 def on_message(ws, message):
-	logger.info('Message sur le serveur websocket reçu :', message)
+	logger.info('Message sur le serveur websocket reçu : ' + message)
 	global bit_vie
 	global cmd_mqtt
 	#info_deamon()
@@ -111,7 +111,7 @@ def on_message(ws, message):
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
 						else:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)
-	logger.info('Publication sur le topic MQTT',_MQTT_TOPIC_PUB,'le message suivant :', MQTT_MAESTRO)
+	logger.info('Publication sur le topic MQTT ' + _MQTT_TOPIC_PUB + ' le message suivant : ' + MQTT_MAESTRO)
 	client.publish(_MQTT_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
 	if cmd_mqtt != "C|RecuperoInfo":
 		cmd_mqtt = "C|RecuperoInfo"
@@ -127,24 +127,24 @@ def on_open(ws):
 	def run(*args):
 		for i in range(_TEMPS_SESSION):
 			time.sleep(_INTERVALLE)
-			logger.info("Envoi de la commande:",cmd_mqtt)
+			logger.info("Envoi de la commande : " + cmd_mqtt)
 			ws.send(cmd_mqtt)
 		time.sleep(1)
 		ws.close()
 	thread.start_new_thread(run, ())
 
-logger.info('Connection en cours au broker MQTT (IP:'+_MQTT_ip,'PORT:'+str(_MQTT_port)+')')
+logger.info('Connection en cours au broker MQTT (IP:'+_MQTT_ip + ' PORT:'+str(_MQTT_port)+')')
 client = mqtt.Client()
 client.on_connect = on_connect_mqtt
 client.on_message = on_message_mqtt
 client.connect(_MQTT_ip, _MQTT_port)
 client.loop_start()
-logger.info('Souscription au topic',_MQTT_TOPIC_SUB,'avec un Qos=1')
+logger.info('Souscription au topic ' + _MQTT_TOPIC_SUB + ' avec un Qos=1')
 client.subscribe(_MQTT_TOPIC_SUB, qos=1)
 
 if __name__ == "__main__":
 	while True:
-		logger.info("Etablissement d'une nouvelle connection au serveur websocket (IP:"+_MCZip,"PORT:"+_MCZport+")")
+		logger.info("Etablissement d'une nouvelle connection au serveur websocket (IP:"+_MCZip+" PORT:"+_MCZport+")")
 		websocket.enableTrace(False)
 		ws = websocket.WebSocketApp("ws://" + _MCZip + ":" + _MCZport,
 									on_message = on_message,
