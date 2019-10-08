@@ -111,7 +111,7 @@ def on_message(ws, message):
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
 						else:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)
-	logger.info('Publication sur le topic MQTT ' + _MQTT_TOPIC_PUB + ' le message suivant : ' + MQTT_MAESTRO)
+	logger.info('Publication sur le topic MQTT ' + _MQTT_TOPIC_PUB + ' le message suivant : ' + json.dumps(MQTT_MAESTRO))
 	client.publish(_MQTT_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
 	if cmd_mqtt != "C|RecuperoInfo":
 		cmd_mqtt = "C|RecuperoInfo"
