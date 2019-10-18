@@ -12,26 +12,17 @@ import sys
 import os
 import json
 import logging
+import datetime
 from logging.handlers import RotatingFileHandler
 
-# création de l'objet logger qui va nous servir à écrire dans les logs
 logger = logging.getLogger()
-# on met le niveau du logger à DEBUG, comme ça il écrit tout
 logger.setLevel(logging.DEBUG)
-# création d'un formateur qui va ajouter le temps, le niveau
-# de chaque message quand on écrira un message dans le log
 formatter = logging.Formatter('%(asctime)s :: %(levelname)s :: %(message)s')
-# création d'un handler qui va rediriger une écriture du log vers
-# un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
 file_handler = RotatingFileHandler('activity.log', 'a', 1000000, 1)
-# on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
-# créé précédement et on ajoute ce handler au logger
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
- 
-# création d'un second handler qui va rediriger chaque écriture de log
-# sur la console
+
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.DEBUG)
 logger.addHandler(stream_handler)
@@ -51,7 +42,7 @@ MQTT_MAESTRO = {}
 cmd_mqtt = "C|RecuperoInfo"
 bit_vie = False
 
-logger.info('Démarrage en cours du script.')
+logger.info('Lancement du deamon')
 logger.info('Anthony L. 2019')
 logger.info('Niveau de LOG : DEBUG')
 
@@ -73,26 +64,10 @@ def secTOdhms(nb_sec):
 	qh,m=divmod(qm,60)
 	d,h=divmod(qh,24)
 	return "%d:%d:%d:%d" %(d,h,m,s)
-
-def info_deamon():
-	os.system('cls' if os.name=='nt' else 'clear')
-	print("Deamon MAESTRO en cours d'execution.")
-	print()
-	print("Informations de connection :")
-	print("MAESTRO :")
-	print("Relevé d'information sur ",_MCZip)
-	print("Intervalle de référence :",_INTERVALLE)
-	print("Temps d'une session : ",_TEMPS_SESSION)
-	print("MQTT :")
-	print("Publications des messages sur :",_MQTT_ip)
-	print()
-	print("Bit de vie :",bit_vie)
 	
 def on_message(ws, message):
 	logger.info('Message sur le serveur websocket reçu : ' + message)
-	global bit_vie
 	global cmd_mqtt
-	#info_deamon()
 	from _data_ import RecuperoInfo
 	for i in range(0,len(message.split("|"))):
 			for j in range(0,len(RecuperoInfo)):
@@ -107,6 +82,29 @@ def on_message(ws, message):
 					else:
 						if i == 6 or i == 26 or i == 28:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)/2
+						'''
+						elif i == 32:
+							#Heure du poêle
+							date = datetime.datetime.now()
+							if int(message.split("|")[i],16) != date.hour:
+								cmd_mqtt = "C|SalvaDataOra|"+str("%02d" %date.day)+str("%02d" %date.month)+str("%02d" %date.year)+str("%02d" %date.hour)+str("%02d" %date.minute)
+						elif i == 33:
+							#Minutes du poêle
+							date= datetime.datetime.now()
+							if int(message.split("|")[i],16) != date.minute:
+								cmd_mqtt = "C|SalvaDataOra|"+str("%02d" %date.day)+str("%02d" %date.month)+str("%02d" %date.year)+str("%02d" %date.hour)+str("%02d" %date.minute)
+						elif i == 34:
+							#Jour du poêle
+							date= datetime.datetime.now()
+							if int(message.split("|")[i],16) != date.day:
+								cmd_mqtt = "C|SalvaDataOra|"+str("%02d" %date.day)+str("%02d" %date.month)+str("%02d" %date.year)+str("%02d" %date.hour)+str("%02d" %date.minute)
+						elif i == 35:
+							#Mois du poêle
+							date= datetime.datetime.now()
+							if int(message.split("|")[i],16) != date.month:
+								cmd_mqtt = "C|SalvaDataOra|"+str("%02d" %date.day)+str("%02d" %date.month)+str("%02d" %date.year)+str("%02d" %date.hour)+str("%02d" %date.minute)
+												
+						'''		
 						elif i >= 37 and i <=42:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
 						else:
@@ -115,7 +113,7 @@ def on_message(ws, message):
 	client.publish(_MQTT_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
 	if cmd_mqtt != "C|RecuperoInfo":
 		cmd_mqtt = "C|RecuperoInfo"
-	bit_vie = not bit_vie
+
 
 def on_error(ws, error):
 	logger.info(error)
