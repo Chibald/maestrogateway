@@ -82,29 +82,7 @@ def on_message(ws, message):
 					else:
 						if i == 6 or i == 26 or i == 28:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)/2
-						'''
-						elif i == 32:
-							#Heure du poêle
-							date = datetime.datetime.now()
-							if int(message.split("|")[i],16) != date.hour:
-								cmd_mqtt = "C|SalvaDataOra|"+str("%02d" %date.day)+str("%02d" %date.month)+str("%02d" %date.year)+str("%02d" %date.hour)+str("%02d" %date.minute)
-						elif i == 33:
-							#Minutes du poêle
-							date= datetime.datetime.now()
-							if int(message.split("|")[i],16) != date.minute:
-								cmd_mqtt = "C|SalvaDataOra|"+str("%02d" %date.day)+str("%02d" %date.month)+str("%02d" %date.year)+str("%02d" %date.hour)+str("%02d" %date.minute)
-						elif i == 34:
-							#Jour du poêle
-							date= datetime.datetime.now()
-							if int(message.split("|")[i],16) != date.day:
-								cmd_mqtt = "C|SalvaDataOra|"+str("%02d" %date.day)+str("%02d" %date.month)+str("%02d" %date.year)+str("%02d" %date.hour)+str("%02d" %date.minute)
-						elif i == 35:
-							#Mois du poêle
-							date= datetime.datetime.now()
-							if int(message.split("|")[i],16) != date.month:
-								cmd_mqtt = "C|SalvaDataOra|"+str("%02d" %date.day)+str("%02d" %date.month)+str("%02d" %date.year)+str("%02d" %date.hour)+str("%02d" %date.minute)
-												
-						'''		
+						
 						elif i >= 37 and i <=42:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
 						else:
