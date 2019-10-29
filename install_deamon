@@ -19,4 +19,7 @@ cp _config_.py /opt/maestro
 cp _data_.py /opt/maestro
 cp maestro.py /opt/maestro
 
-python /opt/maestro/maestro.py
+cp maestro /etc/init.d/
+chmod 0755 /etc/init.d/maestro
+systemctl daemon-reload
+update-rc.d maestro defaults

@@ -69,8 +69,6 @@ class PileFifo(object):
 
 Message_MQTT=PileFifo()
 Message_WS=PileFifo()
-#https://python.jpvweb.com/python/mesrecettespython/doku.php?id=gestion_piles
-
 
 # MCZ MAESTRO
 from _config_ import _MCZip
@@ -84,8 +82,6 @@ from _config_ import _MQTT_port
 from _config_ import _MQTT_TOPIC_SUB
 from _config_ import _MQTT_TOPIC_PUB
 MQTT_MAESTRO = {}
-cmd_mqtt = "C|RecuperoInfo"
-bit_vie = False
 
 logger.info('Lancement du deamon')
 logger.info('Anthony L. 2019')
@@ -101,6 +97,7 @@ def on_message_mqtt(client, userdata, message):
 	if cmd[0] == "42":
 		cmd[1]=(int(cmd[1])*2)
 	Message_MQTT.empile("C|WriteParametri|"+cmd[0]+"|"+str(cmd[1]))
+	logger.info('Contenu Pile Message_MQTT : ' + Message_MQTT.copiepile())
 
 def secTOdhms(nb_sec):
 	qm,s=divmod(nb_sec,60)
@@ -120,7 +117,7 @@ def on_message(ws, message):
 								MQTT_MAESTRO[RecuperoInfo[j][1]] = RecuperoInfo[j][2][k][1]
 								break
 							else:
-								MQTT_MAESTRO[RecuperoInfo[j][1]] = ('Code inconnu', str(int(message.split("|")[i],16)))
+								MQTT_MAESTRO[RecuperoInfo[j][1]] = ('Code inconnu :', str(int(message.split("|")[i],16)))
 					else:
 						if i == 6 or i == 26 or i == 28:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)/2
