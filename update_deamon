@@ -1,0 +1,21 @@
+#!/bin/sh
+
+if [ $(whoami) != 'root' ]; then
+	echo -e "\nVous devez avoir les droits super-utilisateur pour executer $0"
+	exit 1;
+fi
+
+echo "Copie des fichiers necessaires"
+if [ ! -d "/opt/maestro/" ];then
+	mkdir /opt/maestro/
+	chown -R $USER /opt/maestro/
+	chmod -R 0755 /opt/maestro/
+fi
+
+cp _data_.py /opt/maestro
+cp maestro.py /opt/maestro
+
+cp maestro /etc/init.d/
+chmod 0755 /etc/init.d/maestro
+systemctl daemon-reload
+update-rc.d maestro defaults

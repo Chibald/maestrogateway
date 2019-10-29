@@ -10,10 +10,17 @@
 Installation :
 --------------
 
+Pour une installation et utilisation en console :
 ```sh
 git clone https://github.com/Anthony-55/maestro.git
 cd maestro
-sudo bash install.sh
+sudo bash install
+```
+Pour une installation et utilisation en deamon :
+```sh
+git clone https://github.com/Anthony-55/maestro.git
+cd maestro
+sudo bash install_deamon
 ```
 
 Mise à jour :
@@ -22,6 +29,6 @@ Mise à jour :
 ```sh
 cd maestro
 git pull
-sudo bash install.sh
+sudo bash update_deamon
 ```
 
