@@ -1,3 +1,5 @@
+#coding: utf-8
+
 '''
 Fichier pour l'adressage des différents équipement
 

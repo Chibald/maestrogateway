@@ -27,6 +27,51 @@ stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.DEBUG)
 logger.addHandler(stream_handler)
 
+class PileFifo(object):
+    """PileFifo(object): pile FIFO: objet de type file d'attente => on depile l'élément le plus ancien empilé"""
+ 
+    def __init__(self,maxpile=None):
+        self.pile=[]
+        self.maxpile = maxpile
+ 
+    def empile(self,element,idx=0):
+        if (self.maxpile!=None) and (len(self.pile)==self.maxpile):
+            raise ValueError ("erreur: tentative d'empiler dans une pile pleine")
+        self.pile.insert(idx,element)
+ 
+    def depile(self,idx=-1):
+        if len(self.pile)==0:
+            raise ValueError ("erreur: tentative de depiler une pile vide")
+        if idx<-len(self.pile) or idx>=len(self.pile):
+            raise ValueError ("erreur: element de pile à depiler n'existe pas")
+        return self.pile.pop(idx)
+ 
+    def element(self,idx=-1):
+        if idx<-len(self.pile) or idx>=len(self.pile):
+            raise ValueError ("erreur: element de pile à lire n'existe pas")
+        return self.pile[idx]
+ 
+    def copiepile(self,imin=0,imax=None):
+        if imax==None:
+            imax=len(self.pile)
+        if imin<0 or imax>len(self.pile) or imin>=imax:
+            raise ValueError ("erreur: mauvais indice(s) pour l'extraction par copiepile")
+        return list(self.pile[imin:imax])
+ 
+    def pilevide(self):
+        return len(self.pile)==0
+ 
+    def pilepleine(self):
+        return self.maxpile!=None and len(self.pile)==self.maxpile
+ 
+    def taille(self):
+        return len(self.pile)
+
+Message_MQTT=PileFifo()
+Message_WS=PileFifo()
+#https://python.jpvweb.com/python/mesrecettespython/doku.php?id=gestion_piles
+
+
 # MCZ MAESTRO
 from _config_ import _MCZip
 from _config_ import _MCZport
@@ -51,13 +96,11 @@ def on_connect_mqtt(client, userdata, flags, rc):
 	logger.info("Connecté au broker MQTT avec le code : " + rc)
 
 def on_message_mqtt(client, userdata, message):
-	global cmd_mqtt
 	logger.info('Message MQTT reçu : ' + message.payload.decode())
-	cmd_mqtt = message.payload.decode()
-	cmd_mqtt = cmd_mqtt.split(",")
-	if cmd_mqtt[0]=="42":
-		cmd_mqtt[1]=(int(cmd_mqtt[1])*2)
-	cmd_mqtt = "C|WriteParametri|"+cmd_mqtt[0]+"|"+str(cmd_mqtt[1])
+	cmd = message.payload.decode().split(",")
+	if cmd[0] == "42":
+		cmd[1]=(int(cmd[1])*2)
+	Message_MQTT.empile("C|WriteParametri|"+cmd[0]+"|"+str(cmd[1]))
 
 def secTOdhms(nb_sec):
 	qm,s=divmod(nb_sec,60)
@@ -67,7 +110,6 @@ def secTOdhms(nb_sec):
 	
 def on_message(ws, message):
 	logger.info('Message sur le serveur websocket reçu : ' + message)
-	global cmd_mqtt
 	from _data_ import RecuperoInfo
 	for i in range(0,len(message.split("|"))):
 			for j in range(0,len(RecuperoInfo)):
@@ -89,9 +131,6 @@ def on_message(ws, message):
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)
 	logger.info('Publication sur le topic MQTT ' + _MQTT_TOPIC_PUB + ' le message suivant : ' + json.dumps(MQTT_MAESTRO))
 	client.publish(_MQTT_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
-	if cmd_mqtt != "C|RecuperoInfo":
-		cmd_mqtt = "C|RecuperoInfo"
-
 
 def on_error(ws, error):
 	logger.info(error)
@@ -103,8 +142,11 @@ def on_open(ws):
 	def run(*args):
 		for i in range(_TEMPS_SESSION):
 			time.sleep(_INTERVALLE)
-			logger.info("Envoi de la commande : " + cmd_mqtt)
-			ws.send(cmd_mqtt)
+			if Message_MQTT.pilevide():
+				Message_MQTT.empile("C|RecuperoInfo")
+			cmd = Message_MQTT.depile()
+			logger.info("Envoi de la commande : " + cmd)
+			ws.send(cmd)
 		time.sleep(1)
 		ws.close()
 	thread.start_new_thread(run, ())
