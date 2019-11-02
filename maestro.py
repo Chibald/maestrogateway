@@ -28,12 +28,10 @@ stream_handler.setLevel(logging.DEBUG)
 logger.addHandler(stream_handler)
 
 class PileFifo(object):
-    """PileFifo(object): pile FIFO: objet de type file d'attente => on depile l'élément le plus ancien empilé"""
- 
     def __init__(self,maxpile=None):
         self.pile=[]
         self.maxpile = maxpile
- 
+
     def empile(self,element,idx=0):
         if (self.maxpile!=None) and (len(self.pile)==self.maxpile):
             raise ValueError ("erreur: tentative d'empiler dans une pile pleine")
@@ -89,15 +87,15 @@ logger.info('Niveau de LOG : DEBUG')
 
 
 def on_connect_mqtt(client, userdata, flags, rc):
-	logger.info("Connecté au broker MQTT avec le code : " + rc)
+	logger.info("Connecté au broker MQTT avec le code : " + str(rc))
 
 def on_message_mqtt(client, userdata, message):
-	logger.info('Message MQTT reçu : ' + message.payload.decode())
+	logger.info('Message MQTT reçu : ' + str(message.payload.decode()))
 	cmd = message.payload.decode().split(",")
 	if cmd[0] == "42":
 		cmd[1]=(int(cmd[1])*2)
 	Message_MQTT.empile("C|WriteParametri|"+cmd[0]+"|"+str(cmd[1]))
-	logger.info('Contenu Pile Message_MQTT : ' + Message_MQTT.copiepile())
+	logger.info('Contenu Pile Message_MQTT : ' + str(Message_MQTT.copiepile()))
 
 def secTOdhms(nb_sec):
 	qm,s=divmod(nb_sec,60)
@@ -106,7 +104,7 @@ def secTOdhms(nb_sec):
 	return "%d:%d:%d:%d" %(d,h,m,s)
 	
 def on_message(ws, message):
-	logger.info('Message sur le serveur websocket reçu : ' + message)
+	logger.info('Message sur le serveur websocket reçu : ' + str(message))
 	from _data_ import RecuperoInfo
 	for i in range(0,len(message.split("|"))):
 			for j in range(0,len(RecuperoInfo)):
@@ -126,7 +124,7 @@ def on_message(ws, message):
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
 						else:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)
-	logger.info('Publication sur le topic MQTT ' + _MQTT_TOPIC_PUB + ' le message suivant : ' + json.dumps(MQTT_MAESTRO))
+	logger.info('Publication sur le topic MQTT ' + str(_MQTT_TOPIC_PUB) + ' le message suivant : ' + str(json.dumps(MQTT_MAESTRO)))
 	client.publish(_MQTT_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
 
 def on_error(ws, error):
@@ -142,7 +140,7 @@ def on_open(ws):
 			if Message_MQTT.pilevide():
 				Message_MQTT.empile("C|RecuperoInfo")
 			cmd = Message_MQTT.depile()
-			logger.info("Envoi de la commande : " + cmd)
+			logger.info("Envoi de la commande : " + str(cmd))
 			ws.send(cmd)
 		time.sleep(1)
 		ws.close()
@@ -154,7 +152,7 @@ client.on_connect = on_connect_mqtt
 client.on_message = on_message_mqtt
 client.connect(_MQTT_ip, _MQTT_port)
 client.loop_start()
-logger.info('Souscription au topic ' + _MQTT_TOPIC_SUB + ' avec un Qos=1')
+logger.info('Souscription au topic ' + str(_MQTT_TOPIC_SUB) + ' avec un Qos=1')
 client.subscribe(_MQTT_TOPIC_SUB, qos=1)
 
 if __name__ == "__main__":
