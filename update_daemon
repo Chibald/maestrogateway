@@ -12,10 +12,11 @@ if [ ! -d "/opt/maestro/" ];then
 	chmod -R 0755 /opt/maestro/
 fi
 
+cp _config_.py /opt/maestro
 cp _data_.py /opt/maestro
 cp maestro.py /opt/maestro
 
-cp maestro /etc/init.d/
-chmod 0755 /etc/init.d/maestro
-systemctl daemon-reload
-update-rc.d maestro defaults
+cp maestro.service /etc/systemd/system
+chmod a+x /etc/systemd/system/maestro.service
+systemctl --system daemon-reload
+systemctl restart maestro.service
