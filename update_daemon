@@ -5,6 +5,9 @@ if [ $(whoami) != 'root' ]; then
 	exit 1;
 fi
 
+echo "Arret du service maestro"
+systemctl stop maestro.service
+
 echo "Copie des fichiers necessaires"
 if [ ! -d "/opt/maestro/" ];then
 	mkdir /opt/maestro/
@@ -12,11 +15,10 @@ if [ ! -d "/opt/maestro/" ];then
 	chmod -R 0755 /opt/maestro/
 fi
 
-cp _config_.py /opt/maestro
 cp _data_.py /opt/maestro
 cp maestro.py /opt/maestro
-
 cp maestro.service /etc/systemd/system
 chmod a+x /etc/systemd/system/maestro.service
+echo "Redemarage du service, la fenetre pourra etre fermee."
 systemctl --system daemon-reload
 systemctl restart maestro.service
