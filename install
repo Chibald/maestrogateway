@@ -19,4 +19,4 @@ cp _config_.py /opt/maestro
 cp _data_.py /opt/maestro
 cp maestro.py /opt/maestro
 
-python /opt/maestro/maestro.py
+python3 /opt/maestro/maestro.py
