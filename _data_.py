@@ -55,6 +55,7 @@ RecuperoInfo=[
 								[0, "Manuelle"],
 								[1, "Dynamique"],
 								]],
+	[23,"Mode ECO"],
 	[25,"Mode Chronotermostato"],
 	[26,"TEMP - Consigne"],
 	[28,"TEMP - Carte mère"],
