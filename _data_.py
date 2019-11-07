@@ -25,6 +25,7 @@ RecuperoInfo=[
 						[31, "Marche"],
 						[40, "Extinction"],
 						[41, "Refroidissement en cours"],
+						[42, "Nettoyage basse.p"],
 						[46, "Standby"],
 						[50, "Erreur A01 - Allumage raté"],
 						[51, "Erreur A02 - Pas de flamme"],
