@@ -118,7 +118,7 @@ def on_message(ws, message):
 								MQTT_MAESTRO[RecuperoInfo[j][1]] = ('Code inconnu :', str(int(message.split("|")[i],16)))
 					else:
 						if i == 6 or i == 26 or i == 28:
-							MQTT_MAESTRO[RecuperoInfo[j][1]] = float(message.split("|")[i],16)/2
+							MQTT_MAESTRO[RecuperoInfo[j][1]] = float(int(message.split("|")[i],16)/2)
 						
 						elif i >= 37 and i <=42:
 							MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
