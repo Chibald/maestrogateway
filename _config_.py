@@ -9,7 +9,6 @@ _MQTT_port=1883						#Port du broker mqtt
 _MQTT_authentication=False          # Mqtt use authentication? 
 _MQTT_user=''			            # Mqtt User name
 _MQTT_pass=''			            # Mqtt password
-_MQTT_TOPIC_PUB='PUBmcz'			#Topic général de publication
 _MQTT_TOPIC_SUB='SUBmcz'			#Topic général de souscription
 _MQTT_TOPIC_PUB='PUBmcz'			#Topic général de publication
 _MCZip='192.168.120.1'				#Adresse IP du poêle
