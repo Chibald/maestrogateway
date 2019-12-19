@@ -79,6 +79,11 @@ from _config_ import _MQTT_ip
 from _config_ import _MQTT_port
 from _config_ import _MQTT_TOPIC_SUB
 from _config_ import _MQTT_TOPIC_PUB
+
+from _config_ import _MQTT_authentication
+from _config_ import _MQTT_user
+from _config_ import _MQTT_pass
+
 MQTT_MAESTRO = {}
 
 logger.info('Lancement du deamon')
