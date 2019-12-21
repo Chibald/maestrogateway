@@ -27,6 +27,8 @@ stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.DEBUG)
 logger.addHandler(stream_handler)
 
+lastMczMessage = ''
+
 class PileFifo(object):
     def __init__(self,maxpile=None):
         self.pile=[]
@@ -109,28 +111,31 @@ def secTOdhms(nb_sec):
 	return "%d:%d:%d:%d" %(d,h,m,s)
 	
 def on_message(ws, message):
-	logger.info('Message sur le serveur websocket reçu : ' + str(message))
-	from _data_ import RecuperoInfo
-	for i in range(0,len(message.split("|"))):
-			for j in range(0,len(RecuperoInfo)):
-				if i == RecuperoInfo[j][0]:
-					if len(RecuperoInfo[j]) > 2:
-						for k in range(0,len(RecuperoInfo[j][2])):
-							if int(message.split("|")[i],16) == RecuperoInfo[j][2][k][0]:
-								MQTT_MAESTRO[RecuperoInfo[j][1]] = RecuperoInfo[j][2][k][1]
-								break
-							else:
-								MQTT_MAESTRO[RecuperoInfo[j][1]] = ('Code inconnu :', str(int(message.split("|")[i],16)))
-					else:
-						if i == 6 or i == 26 or i == 28:
-							MQTT_MAESTRO[RecuperoInfo[j][1]] = float(int(message.split("|")[i],16)/2)
-						
-						elif i >= 37 and i <=42:
-							MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
+	global lastMczMessage
+	if lastMczMessage != str(message):
+		lastMczMessage = str(message)
+		logger.info('Message sur le serveur websocket reçu : ' + str(message))		
+		from _data_ import RecuperoInfo
+		for i in range(0,len(message.split("|"))):
+				for j in range(0,len(RecuperoInfo)):
+					if i == RecuperoInfo[j][0]:
+						if len(RecuperoInfo[j]) > 2:
+							for k in range(0,len(RecuperoInfo[j][2])):
+								if int(message.split("|")[i],16) == RecuperoInfo[j][2][k][0]:
+									MQTT_MAESTRO[RecuperoInfo[j][1]] = RecuperoInfo[j][2][k][1]
+									break
+								else:
+									MQTT_MAESTRO[RecuperoInfo[j][1]] = ('Code inconnu :', str(int(message.split("|")[i],16)))
 						else:
-							MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)
-	logger.info('Publication sur le topic MQTT ' + str(_MQTT_TOPIC_PUB) + ' le message suivant : ' + str(json.dumps(MQTT_MAESTRO)))
-	client.publish(_MQTT_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
+							if i == 6 or i == 26 or i == 28:
+								MQTT_MAESTRO[RecuperoInfo[j][1]] = float(int(message.split("|")[i],16)/2)
+							
+							elif i >= 37 and i <=42:
+								MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
+							else:
+								MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)
+		logger.info('Publication sur le topic MQTT ' + str(_MQTT_TOPIC_PUB) + ' le message suivant : ' + str(json.dumps(MQTT_MAESTRO)))
+		client.publish(_MQTT_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
 
 def on_error(ws, error):
 	logger.info(error)
