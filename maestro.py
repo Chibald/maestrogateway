@@ -106,7 +106,7 @@ def secTOdhms(nb_sec):
 	return "%d:%d:%d:%d" %(d,h,m,s)
 	
 def on_message(ws, message):
-    global lastMczMessage 
+	global lastMczMessage
 	if lastMczMessage != str(message):
 		lastMczMessage = str(message)
 		logger.info('Message sur le serveur websocket reçu : ' + str(message))		
