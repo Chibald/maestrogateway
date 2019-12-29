@@ -21,14 +21,14 @@ RecuperoInfo=[
 	[14,"RPM_WormWheel_Live"],	
 	[20,"Active_Mode"],  #0: Désactivé, 1: Activé
 	[21,"Active_Live"],
-	[22,"Regulation_Mode"],
+	[22,"Control_Mode"],
 	[23,"ECO_Mode"],	
 	[24,"Silent_Mode"],
 	[25,"Chrono_Mode"],
 	[26,"Temperature_Setpoint"],
 	[27,"Boiler_Setpoint"],
 	[28,"Temperature_Motherboard"],
-	[29,"Active_Power"],
+	[29,"Power_Level"],
 	[32, "Date_Time_Hours"], # time (0-23)
 	[33, "Date_Time_Minutes"], #  (0-29)
 	[34, "Date_Day_Of_Month"], # (1-31)
