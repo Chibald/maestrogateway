@@ -206,6 +206,7 @@ if __name__ == "__main__":
 	while True:	
 		# sudo dhclient -v wlan0	
 		if _MCZip == 'auto':
+    		os.system("dhclient -v " + _MZC_INTERFACE)  
 			_MCZip=get_ip_address(_MZC_INTERFACE)
 			_MCZip=_MCZip[:_MCZip.rfind('.')+1]+'1'
 		
