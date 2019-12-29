@@ -25,6 +25,7 @@ commands.append(MaestroCommand('Eco_Mode', 41, 'onoff'))
 commands.append(MaestroCommand('Sound_Effects', 50, 'onoff'))
 commands.append(MaestroCommand('Power', 34, 'onoff40'))
 commands.append(MaestroCommand('Fan_State', 37, 'int')) # 0, 1, 2, 3 ,4,  5 ,6 
+commands.append(MaestroCommand('Refresh', 0, 'Refresh'))
 
 def getMaestroCommand(commandname):
     i = 0

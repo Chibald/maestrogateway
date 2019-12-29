@@ -94,6 +94,7 @@ from _config_ import _MQTT_user
 from _config_ import _MQTT_pass
 
 MQTT_MAESTRO = {}
+MaestroInfoMessageCache = {}
 
 logger.info('Lancement du deamon')
 logger.info('Anthony L. 2019')
@@ -110,6 +111,9 @@ def on_message_mqtt(client, userdata, message):
 	logger.info(maestrocommand.name)
 	if maestrocommand.name == "Unknown":
     		logger.info('Unknown Maestro JSON Command Recieved. Ignoring.' + message)
+	elif maestrocommand.name == "Refresh":
+    		logger.info('Clearing the message cache')
+    		MaestroInfoMessageCache.clear()		
 	else:
 			write = "C|WriteParametri|"
 			writevalue = float(res["Value"])
@@ -144,33 +148,44 @@ def get_ip_address(ifname):
         struct.pack('256s', ifname[:15])
     )[20:24])	
 	
-def on_message(ws, message):
-	global lastMczMessage
-	if lastMczMessage != str(message):
-		lastMczMessage = str(message)
-		#logger.info('Message sur le serveur websocket reçu : ' + str(message))		
-		from _data_oh_ import RecuperoInfo
+def on_message(ws, message):	    	
+		res = {}
+		MaestroInfoMessagePub = {}
+		from _data_oh_ import RecuperoInfo		
 		for i in range(0,len(message.split("|"))):
+    			found = False
 				for j in range(0,len(RecuperoInfo)):
-					if i == RecuperoInfo[j][0]: # found in recuperoinfo
-						if len(RecuperoInfo[j]) > 2: # Descriptive string available in recuperoinfo array
-							for k in range(0,len(RecuperoInfo[j][2])):
-								if int(message.split("|")[i],16) == RecuperoInfo[j][2][k][0]:
-									MQTT_MAESTRO[RecuperoInfo[j][1]] = RecuperoInfo[j][2][k][1]
-									break
-								else:
-									MQTT_MAESTRO[RecuperoInfo[j][1]] = ('Code inconnu :', str(int(message.split("|")[i],16)))
-						else:
+					if i == RecuperoInfo[j][0]: # found in recuperoinfo						
 							if i == 6 or i == 26 or i == 28 or i == 8 or i == 27: # Temperatures are divided by 2
-								MQTT_MAESTRO[RecuperoInfo[j][1]] = float(int(message.split("|")[i],16))/2							
+								res[RecuperoInfo[j][1]] = float(int(message.split("|")[i],16))/2							
+								found=True
 							elif i >= 37 and i <= 42: 			# value is in seconds
-								MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
+								res[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
+								found=True
 							else:
-								MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)
-					else:
-							MQTT_MAESTRO['Unknown'+str(i)] = int(message.split("|")[i],16)
-		logger.info('Publication sur le topic MQTT ' + str(_MQTT_TOPIC_PUB) + ' le message suivant : ' + str(json.dumps(MQTT_MAESTRO)))
-		client.publish(_MQTT_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
+								res[RecuperoInfo[j][1]] = int(message.split("|")[i],16)
+								found=True
+					if found == False:
+						res['Unknown'+str(i)] = int(message.split("|")[i],16)		
+
+		for item in res:
+            if item not in MaestroInfoMessageCache:
+                MaestroInfoMessageCache[item] = res[item]
+				MaestroInfoMessagePub[item] = res[item]
+				#logger.info(item + ' new value ' + str(res[item]))				
+            elif MaestroInfoMessageCache[item] != res[item]:
+                #logger.info(item + ' changed from ' + str(MaestroInfoMessageCache[item]) + ' to ' + str(res[item]))				
+                MaestroInfoMessageCache[item] = res[item]
+				MaestroInfoMessagePub[item] = res[item]
+            #else:
+            #    logger.info(item + ' unchanged ')
+
+		if len(MaestroInfoMessagePub):
+				logger.info('Publishing to Topic' + str(_MQTT_TOPIC_PUB) + ' message  : ' + str(json.dumps(MaestroInfoMessagePub)))
+				client.publish(_MQTT_TOPIC_PUB, json.dumps(MaestroInfoMessagePub),1)
+		#else:
+    	#		logger.info('Nothing changed.')
+
 
 def on_error(ws, error):
 	logger.info(error)
