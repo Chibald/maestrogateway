@@ -24,9 +24,22 @@ commands.append(MaestroCommand('Active_Mode', 35, 'onoff'))
 commands.append(MaestroCommand('Eco_Mode', 41, 'onoff'))
 commands.append(MaestroCommand('Sound_Effects', 50, 'onoff'))
 commands.append(MaestroCommand('Power', 34, 'onoff40'))
-commands.append(MaestroCommand('Fan_State', 37, 'int')) # 0, 1, 2, 3 ,4,  5 ,6 
+commands.append(MaestroCommand('Fan_State', 37, 'int'))# 0, 1, 2, 3 ,4,  5 ,6
 commands.append(MaestroCommand('Refresh', 0, 'Refresh'))
 commands.append(MaestroCommand('Control_Mode', 40, 'onoff')) # 0 = Auto , 1 = Manual
+
+# Untested, proceed with caution
+commands.append(MaestroCommand('Feeding_Screw', 34, '49')) # write 49 as parameter to socket foor feeding screw activiation
+commands.append(MaestroCommand('Celsius_Fahrenheit', 49, 'int'))
+commands.append(MaestroCommand('Sleep', 57, 'int'))
+commands.append(MaestroCommand('Summer_Mode', 58, 'onoff'))
+commands.append(MaestroCommand('Pellet_Sensor', 148, 'onoff'))
+commands.append(MaestroCommand('Adaptive_Mode', 149, 'onoff'))
+commands.append(MaestroCommand('AntiFreeze', 154, 'int'))
+commands.append(MaestroCommand('Reset_Active', 2, '255'))
+commands.append(MaestroCommand('Reset_Alarm', 1, '255'))
+# Probably bit dangerous ;)
+#commands.append(MaestroCommand('Factory_Reset', 46, 'onoff'))
 
 def getMaestroCommand(commandname):
     i = 0
