@@ -198,8 +198,8 @@ client.subscribe(_MQTT_TOPIC_SUB, qos=1)
 
 if __name__ == "__main__":
     RecuperoInfo_EnQueue()
-    mep = 0
-    while mep < 1:
+    debugAttempts = 0
+    while True #debugAttempts < 1:
         logger.info(
             "Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
         websocket.enableTrace(False)
@@ -212,5 +212,5 @@ if __name__ == "__main__":
         ws.run_forever(ping_interval=5, ping_timeout=2)
         time.sleep(wsInterval)
 
-        mep = mep + 1
+        debugAttempts = debugAttempts + 1
         logger.info(mep)
