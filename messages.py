@@ -4,7 +4,6 @@ from enum import Enum
 '''
 
 '''
-
 class MaestoMessage(Enum):
     Parameters = "00"
     Info = "01"
@@ -74,6 +73,6 @@ RecuperoInfo = [
     [56, "SetPuffer"],
     [57, "SetBoiler"],
     [58, "Hydro_3"],  # != 255 == Hydro version
-    [59, "ReturnValue"],            
+    [59, "ReturnValue"],
     [60, "AntiFreeze"]
 ]
