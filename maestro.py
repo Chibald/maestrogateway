@@ -21,6 +21,7 @@ try:
 except ImportError:
    import Queue as queue
 
+# De-Duplicate message queue to prevent flipping
 class SetQueue(queue.Queue):
     def _init(self, maxsize):
         queue.Queue._init(self, maxsize) 
@@ -83,13 +84,10 @@ from _config_ import _MQTT_ip
 wsConnected = False
 
 # Start
-logger.info('Lancement du deamon, Chibald verzione')
-logger.info('Forked from Anthony L.''s Maestro daemon.')
-
+logger.info('Starting Maestro Daemon')
 
 def on_connect_mqtt(client, userdata, flags, rc):
     logger.info("MQTT: Connected to broker. " + str(rc))
-
 
 def on_message_mqtt(client, userdata, message):
     logger.info('MQTT: Message recieved: ' + str(message.payload.decode()))
@@ -202,8 +200,8 @@ client.subscribe(_MQTT_TOPIC_SUB, qos=1)
 
 if __name__ == "__main__":
     RecuperoInfo_EnQueue()
-    debugAttempts = 0
-    while debugAttempts < 1:
+    SocketConnections = 0
+    while True: #SocketConnections < 1:
         logger.info(
             "Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
         websocket.enableTrace(False)
@@ -214,7 +212,6 @@ if __name__ == "__main__":
         ws.on_open = on_open
 
         ws.run_forever(ping_interval=5, ping_timeout=2)
-        time.sleep(wsInterval)
-
-        debugAttempts = debugAttempts + 1
-        logger.info(debugAttempts)
+        time.sleep(1)
+        SocketConnections = SocketConnections + 1
+        logger.info("Socket COnnection Count: " + SocketConnections)
