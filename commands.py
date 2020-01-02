@@ -11,7 +11,16 @@ class MaestroCommand:
         self.maestroid = id # Maestro command ID to be sent via websocket
         self.commandtype = commandtype # Command type
 
+class MaestroCommandValue:
+    def __init__(self, maestrocommand, commandvalue):
+        self.command = maestrocommand
+        self.value = commandvalue
+
 commands = []
+# Daemon Control Messages
+commands.append(MaestroCommand('Refresh', 0, 'Refresh'))
+commands.append(MaestroCommand('GetInfo', 0, 'GetInfo'))
+# Maestro Control Messages
 commands.append(MaestroCommand('Temperature_Setpoint', 42, 'temperature'))
 commands.append(MaestroCommand('Boiler_Setpoint', 51, 'temperature'))
 commands.append(MaestroCommand('Chronostat', 1111, 'onoff'))
@@ -25,9 +34,7 @@ commands.append(MaestroCommand('Eco_Mode', 41, 'onoff'))
 commands.append(MaestroCommand('Sound_Effects', 50, 'onoff'))
 commands.append(MaestroCommand('Power', 34, 'onoff40'))
 commands.append(MaestroCommand('Fan_State', 37, 'int'))# 0, 1, 2, 3 ,4,  5 ,6
-commands.append(MaestroCommand('Refresh', 0, 'Refresh'))
 commands.append(MaestroCommand('Control_Mode', 40, 'onoff')) # 0 = Auto , 1 = Manual
-
 # Untested, proceed with caution
 commands.append(MaestroCommand('Feeding_Screw', 34, '49')) # write 49 as parameter to socket foor feeding screw activiation
 commands.append(MaestroCommand('Celsius_Fahrenheit', 49, 'int'))
@@ -48,3 +55,26 @@ def getMaestroCommand(commandname):
             return commands[i]    
         i += 1
     return MaestroCommand('Unknown', -1, 'Unknown')
+
+def maestroCommandToWriteParametri(maestrocommandval):
+    write = ""
+    maestrocommand = maestrocommandval.command
+    if maestrocommand.name == "GetInfo":
+        write = "C|RecuperoInfo"
+    else:
+        write = "C|WriteParametri|"
+        writevalue = float(maestrocommandval.value)
+        if maestrocommand.commandtype == 'temperature':
+            writevalue = int(writevalue*2)
+        elif maestrocommand.commandtype == "onoff40":
+            writevalue = int(writevalue)
+            if writevalue == 0:
+                writevalue = 40
+            else:
+                writevalue = 1
+        elif maestrocommand.commandtype == "onoff":
+            writevalue = int(writevalue)
+            if writevalue != 1:
+                writevalue = 0
+        write += str(maestrocommand.maestroid) + "|" + str(writevalue)
+    return write

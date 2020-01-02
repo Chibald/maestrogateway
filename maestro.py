@@ -15,10 +15,34 @@ import logging
 import threading
 import datetime
 from logging.handlers import RotatingFileHandler
-from fifoqueue import PileFifo
+
+try:
+   import queue
+except ImportError:
+   import Queue as queue
+
+# De-Duplicate message queue to prevent flipping
+class SetQueue(queue.Queue):
+    def _init(self, maxsize):
+        queue.Queue._init(self, maxsize) 
+        self.all_items = set()
+
+    def _put(self, item):
+        found = False
+        for val in self.all_items: 
+            if val.command.name == item.command.name:
+                found = True
+                val.command.value = item.command.value
+        if not found:
+            queue.Queue._put(self, item) 
+            self.all_items.add(item)
+
+    def _get(self):
+        item = queue.Queue._get(self)
+        self.all_items.remove(item)
+        return item
 
 # Intervals
-wsInterval = 1
 wsConnectionTime = 360
 recuperoInfoInterval = 15.0
 
@@ -39,11 +63,12 @@ from _config_ import _MCZport
 from _config_ import _MCZip
 
 # Commands
-from commands import MaestroCommand, getMaestroCommand, commands
+from commands import MaestroCommand, getMaestroCommand, commands, maestroCommandToWriteParametri, MaestroCommandValue
+CommandQueue = SetQueue()
 
 # Messages
 from messages import RecuperoInfo, MaestoMessage
-Message_MQTT = PileFifo()
+#Message_MQTT = PileFifo()
 MaestroInfoMessageCache = {}
 
 # MQTT
@@ -59,43 +84,22 @@ from _config_ import _MQTT_ip
 wsConnected = False
 
 # Start
-logger.info('Lancement du deamon, Chibald verzione')
-logger.info('Forked from Anthony L.''s Maestro daemon.')
-
+logger.info('Starting Maestro Daemon')
 
 def on_connect_mqtt(client, userdata, flags, rc):
     logger.info("MQTT: Connected to broker. " + str(rc))
-
 
 def on_message_mqtt(client, userdata, message):
     logger.info('MQTT: Message recieved: ' + str(message.payload.decode()))
     res = json.loads(str(message.payload.decode()))
     maestrocommand = getMaestroCommand(res["Command"])
     if maestrocommand.name == "Unknown":
-        logger.info(
-            'Unknown Maestro JSON Command Recieved. Ignoring.' + message)
+        logger.info('Unknown Maestro JSON Command Recieved. Ignoring.' + message)
     elif maestrocommand.name == "Refresh":
         logger.info('Clearing the message cache')
         MaestroInfoMessageCache.clear()
     else:
-        write = "C|WriteParametri|"
-        writevalue = float(res["Value"])
-        if maestrocommand.commandtype == 'temperature':
-            writevalue = int(writevalue*2)
-        elif maestrocommand.commandtype == "onoff40":
-            writevalue = int(writevalue)
-            if writevalue == 0:
-                writevalue = 40
-            else:
-                writevalue = 1
-        elif maestrocommand.commandtype == "onoff":
-            writevalue = int(writevalue)
-            if writevalue != 1:
-                writevalue = 0
-
-        write += str(maestrocommand.maestroid) + "|" + str(writevalue)
-        Message_MQTT.empile(write)
-
+        CommandQueue.put(MaestroCommandValue(maestrocommand, float(res["Value"])))
 
 def secTOdhms(nb_sec):
     qm, s = divmod(nb_sec, 60)
@@ -103,12 +107,10 @@ def secTOdhms(nb_sec):
     d, h = divmod(qh, 24)
     return "%d:%d:%d:%d" % (d, h, m, s)
 
-
 def RecuperoInfo_EnQueue():
     threading.Timer(recuperoInfoInterval, RecuperoInfo_EnQueue).start()
     if wsConnected:
-        Message_MQTT.empile("C|RecuperoInfo")
-
+        CommandQueue.put(MaestroCommandValue(MaestroCommand('GetInfo', 0, 'GetInfo'), 0))
 
 def ProcessRecuperoInfo(message):
     res = {}
@@ -151,8 +153,8 @@ def on_message(ws, message):
     messageArray = message.split("|")
     if messageArray[0] == MaestoMessage.Info.value:
         ProcessRecuperoInfo(message)
-    elif messageArray[0] == MaestoMessage.Ping.value:
-        Message_MQTT.empile("P|PONG")
+    #elif messageArray[0] == MaestoMessage.Ping.value:
+    #    Message_MQTT.empile("P|PONG")
     else:
         logger.info('Unsupported message type recieved !')
 
@@ -173,10 +175,10 @@ def on_open(ws):
     wsConnected = True
 
     def run(*args):
-        for i in range(wsConnectionTime*4):
-            time.sleep(wsInterval/4)
-            if Message_MQTT.pilevide() == False:
-                cmd = Message_MQTT.depile()
+        for i in range(360*4):
+            time.sleep(0.25)
+            while not CommandQueue.empty():
+                cmd = maestroCommandToWriteParametri(CommandQueue.get())
                 logger.info("Websocket: Send " + str(cmd))
                 ws.send(cmd)
         logger.info('Closing Websocket Connection')
@@ -198,8 +200,8 @@ client.subscribe(_MQTT_TOPIC_SUB, qos=1)
 
 if __name__ == "__main__":
     RecuperoInfo_EnQueue()
-    mep = 0
-    while mep < 1:
+    SocketConnections = 0
+    while True: #SocketConnections < 1:
         logger.info(
             "Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
         websocket.enableTrace(False)
@@ -210,7 +212,6 @@ if __name__ == "__main__":
         ws.on_open = on_open
 
         ws.run_forever(ping_interval=5, ping_timeout=2)
-        time.sleep(wsInterval)
-
-        mep = mep + 1
-        logger.info(mep)
+        time.sleep(1)
+        SocketConnections = SocketConnections + 1
+        logger.info("Socket COnnection Count: " + SocketConnections)
