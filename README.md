@@ -45,7 +45,7 @@ Make sure you can ping the device before proceeding.
 create a folder, in this folder run:
 
 ```sh
-git clone --single-branch --branch openhab_compatibility https://github.com/Chibald/Maestro.git .
+git clone https://github.com/Chibald/maestrogateway .
 ```
 
 Open the config file and edit as neccesary
