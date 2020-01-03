@@ -45,6 +45,11 @@ create a folder, in this folder run:
 git clone --single-branch --branch openhab_compatibility https://github.com/Chibald/Maestro.git .
 ```
 
+Open the config file and edit as neccesary
+```sh
+sudo nano _config_.py
+```
+
 For a normal installation and a test launch in console:
 ```sh
 sudo bash install
