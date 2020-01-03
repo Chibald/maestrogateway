@@ -23,7 +23,26 @@ Every 15 seconds the maestro.service will post an update to the Mqtt topic.
 
 ### Sending commands
 Publish Json command on the command Mqtt - topic to issue commands.
-For example, to turn on the stove or to turn off the stove.
+Examples:
+
+to turn on the stove:
+```
+{ "Command": "Power", "Value": 1}
+```
+
+to turn off the stove:
+```
+{ "Command": "Power", "Value": 0}
+```
+
+to set temperature to 20.5 degrees:
+```
+{ "Command": "Temperature_Setpoint", "Value": "20.5"}
+```
+
+etc.
+Check out the list in commands.py for available commands.
+
 
 ## Hardware Prerequisities
 The MZC pellet stove has its own Wifi SSID. The easiest way to bridge this connection is by using a Raspberry 3 with a wired ethernet to your lan, and to configure the onboard Wifi to connect to the SSID of the pellet stove. But any device with two lans will work.
