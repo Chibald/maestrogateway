@@ -1,20 +1,61 @@
 #!/usr/bin/python3
-#coding: utf-8
+# coding: utf-8
+import time
+import json
+import logging
+import threading
+
+from logging.handlers import RotatingFileHandler
+from _config_ import _MCZport
+from _config_ import _MCZip
+from messages import MaestroMessageType, process_infostring
+from _config_ import _MQTT_pass
+from _config_ import _MQTT_user
+from _config_ import _MQTT_authentication
+from _config_ import _MQTT_TOPIC_PUB
+from _config_ import _MQTT_TOPIC_SUB
+from _config_ import _MQTT_port
+from _config_ import _MQTT_ip
+from commands import MaestroCommand, get_maestro_command, maestrocommandvalue_to_websocket_string, MaestroCommandValue
 
 import paho.mqtt.client as mqtt
 import websocket
-try:
-	import thread
-except ImportError:
-	import _thread as thread
-import time
-import sys
-import os
-import json
-import logging
-import datetime
-from logging.handlers import RotatingFileHandler
 
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+
+try:
+    import queue
+except ImportError:
+    import Queue as queue
+
+class SetQueue(queue.Queue):
+    """ De-Duplicate message queue to prevent flipping values (Debounce) """
+    def _init(self, maxsize):
+        queue.Queue._init(self, maxsize)
+        self.all_items = set()
+
+    def _put(self, item):
+        found = False
+        for val in self.all_items:
+            if val.command.name == item.command.name:
+                found = True
+                val.command.value = item.command.value
+        if not found:
+            queue.Queue._put(self, item)
+            self.all_items.add(item)
+
+    def _get(self):
+        item = queue.Queue._get(self)
+        self.all_items.remove(item)
+        return item
+
+GETSTOVEINFO_INTERVAL = 15.0
+WEBSOCKET_CONNECTED = False
+
+# Logging
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s :: %(levelname)s :: %(message)s')
@@ -22,159 +63,117 @@ file_handler = RotatingFileHandler('activity.log', 'a', 1000000, 1)
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
-
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.DEBUG)
 logger.addHandler(stream_handler)
 
-lastMczMessage = ''
+CommandQueue = SetQueue()
+MaestroInfoMessageCache = {}
 
-class PileFifo(object):
-    def __init__(self,maxpile=None):
-        self.pile=[]
-        self.maxpile = maxpile
-
-    def empile(self,element,idx=0):
-        if (self.maxpile!=None) and (len(self.pile)==self.maxpile):
-            raise ValueError ("erreur: tentative d'empiler dans une pile pleine")
-        self.pile.insert(idx,element)
- 
-    def depile(self,idx=-1):
-        if len(self.pile)==0:
-            raise ValueError ("erreur: tentative de depiler une pile vide")
-        if idx<-len(self.pile) or idx>=len(self.pile):
-            raise ValueError ("erreur: element de pile à depiler n'existe pas")
-        return self.pile.pop(idx)
- 
-    def element(self,idx=-1):
-        if idx<-len(self.pile) or idx>=len(self.pile):
-            raise ValueError ("erreur: element de pile à lire n'existe pas")
-        return self.pile[idx]
- 
-    def copiepile(self,imin=0,imax=None):
-        if imax==None:
-            imax=len(self.pile)
-        if imin<0 or imax>len(self.pile) or imin>=imax:
-            raise ValueError ("erreur: mauvais indice(s) pour l'extraction par copiepile")
-        return list(self.pile[imin:imax])
- 
-    def pilevide(self):
-        return len(self.pile)==0
- 
-    def pilepleine(self):
-        return self.maxpile!=None and len(self.pile)==self.maxpile
- 
-    def taille(self):
-        return len(self.pile)
-
-Message_MQTT=PileFifo()
-Message_WS=PileFifo()
-
-# MCZ MAESTRO
-from _config_ import _MCZip
-from _config_ import _MCZport
-_INTERVALLE = 1
-_TEMPS_SESSION = 60
-
-# MQTT
-from _config_ import _MQTT_ip
-from _config_ import _MQTT_port
-from _config_ import _MQTT_TOPIC_SUB
-from _config_ import _MQTT_TOPIC_PUB
-
-from _config_ import _MQTT_authentication
-from _config_ import _MQTT_user
-from _config_ import _MQTT_pass
-
-MQTT_MAESTRO = {}
-
-logger.info('Lancement du deamon')
-logger.info('Anthony L. 2019')
-logger.info('Niveau de LOG : DEBUG')
-
+# Start
+logger.info('Starting Maestro Daemon')
 
 def on_connect_mqtt(client, userdata, flags, rc):
-	logger.info("Connecté au broker MQTT avec le code : " + str(rc))
+    logger.info("MQTT: Connected to broker. " + str(rc))
 
 def on_message_mqtt(client, userdata, message):
-	logger.info('Message MQTT reçu : ' + str(message.payload.decode()))
-	cmd = message.payload.decode().split(",")
-	if cmd[0] == "42":
-		cmd[1]=(int(cmd[1])*2)
-	Message_MQTT.empile("C|WriteParametri|"+cmd[0]+"|"+str(cmd[1]))
-	logger.info('Contenu Pile Message_MQTT : ' + str(Message_MQTT.copiepile()))
+    logger.info('MQTT: Message recieved: ' + str(message.payload.decode()))
+    res = json.loads(str(message.payload.decode()))
+    maestrocommand = get_maestro_command(res["Command"])
+    if maestrocommand.name == "Unknown":
+        logger.info('Unknown Maestro JSON Command Recieved. Ignoring.' + message)
+    elif maestrocommand.name == "Refresh":
+        logger.info('Clearing the message cache')
+        MaestroInfoMessageCache.clear()
+    else:
+        CommandQueue.put(MaestroCommandValue(maestrocommand, float(res["Value"])))
 
-def secTOdhms(nb_sec):
-	qm,s=divmod(nb_sec,60)
-	qh,m=divmod(qm,60)
-	d,h=divmod(qh,24)
-	return "%d:%d:%d:%d" %(d,h,m,s)
-	
+def recuperoinfo_enqueue():
+    """Get Stove information every x seconds as long as there is a websocket connection"""
+    threading.Timer(GETSTOVEINFO_INTERVAL, recuperoinfo_enqueue).start()
+    if WEBSOCKET_CONNECTED:
+        CommandQueue.put(MaestroCommandValue(MaestroCommand('GetInfo', 0, 'GetInfo'), 0))
+
+def process_info_message(message):
+    """Process websocket array string that has the stove Info message"""
+    res = process_infostring(message)
+    maestro_info_message_publish = {}
+        
+    for item in res:
+        if item not in MaestroInfoMessageCache:
+            MaestroInfoMessageCache[item] = res[item]
+            maestro_info_message_publish[item] = res[item]
+        elif MaestroInfoMessageCache[item] != res[item]:
+            MaestroInfoMessageCache[item] = res[item]
+            maestro_info_message_publish[item] = res[item]
+
+    if len(maestro_info_message_publish) == 0:
+        maestro_info_message_publish["Status"] = "No Changes"
+
+    logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB) +
+                '", Message : ' + str(json.dumps(maestro_info_message_publish)))
+
+    client.publish(_MQTT_TOPIC_PUB, json.dumps(maestro_info_message_publish), 1)
+
+
 def on_message(ws, message):
-	global lastMczMessage
-	if lastMczMessage != str(message):
-		lastMczMessage = str(message)
-		logger.info('Message sur le serveur websocket reçu : ' + str(message))		
-		from _data_ import RecuperoInfo
-		for i in range(0,len(message.split("|"))):
-				for j in range(0,len(RecuperoInfo)):
-					if i == RecuperoInfo[j][0]:
-						if len(RecuperoInfo[j]) > 2:
-							for k in range(0,len(RecuperoInfo[j][2])):
-								if int(message.split("|")[i],16) == RecuperoInfo[j][2][k][0]:
-									MQTT_MAESTRO[RecuperoInfo[j][1]] = RecuperoInfo[j][2][k][1]
-									break
-								else:
-									MQTT_MAESTRO[RecuperoInfo[j][1]] = ('Code inconnu :', str(int(message.split("|")[i],16)))
-						else:
-							if i == 6 or i == 26 or i == 28:
-								MQTT_MAESTRO[RecuperoInfo[j][1]] = float(int(message.split("|")[i],16)/2)
-							
-							elif i >= 37 and i <=42:
-								MQTT_MAESTRO[RecuperoInfo[j][1]] = secTOdhms(int(message.split("|")[i],16))
-							else:
-								MQTT_MAESTRO[RecuperoInfo[j][1]] = int(message.split("|")[i],16)
-		logger.info('Publication sur le topic MQTT ' + str(_MQTT_TOPIC_PUB) + ' le message suivant : ' + str(json.dumps(MQTT_MAESTRO)))
-		client.publish(_MQTT_TOPIC_PUB, json.dumps(MQTT_MAESTRO),1)
+    message_array = message.split("|")
+    if message_array[0] == MaestroMessageType.Info.value:
+        process_info_message(message)
+    else:
+        logger.info('Unsupported message type recieved !')
 
 def on_error(ws, error):
-	logger.info(error)
+    logger.info(error)
 
 def on_close(ws):
-	logger.info('Session websocket fermée')
+    logger.info('Websocket: Disconnected')
+    global WEBSOCKET_CONNECTED
+    WEBSOCKET_CONNECTED = False
 
 def on_open(ws):
-	def run(*args):
-		for i in range(_TEMPS_SESSION):
-			time.sleep(_INTERVALLE)
-			if Message_MQTT.pilevide():
-				Message_MQTT.empile("C|RecuperoInfo")
-			cmd = Message_MQTT.depile()
-			logger.info("Envoi de la commande : " + str(cmd))
-			ws.send(cmd)
-		time.sleep(1)
-		ws.close()
-	thread.start_new_thread(run, ())
+    logger.info('Websocket: Connected')
+    global WEBSOCKET_CONNECTED
+    WEBSOCKET_CONNECTED = True
+    def run(*args):
+        for i in range(360*4):
+            time.sleep(0.25)
+            while not CommandQueue.empty():
+                cmd = maestrocommandvalue_to_websocket_string(CommandQueue.get())
+                logger.info("Websocket: Send " + str(cmd))
+                ws.send(cmd)        
+        logger.info('Closing Websocket Connection')
+        ws.close()
+    thread.start_new_thread(run, ())
 
-logger.info('Connection en cours au broker MQTT (IP:'+_MQTT_ip + ' PORT:'+str(_MQTT_port)+')')
+logger.info('Connection in progress to the MQTT broker (IP:' +
+            _MQTT_ip + ' PORT:'+str(_MQTT_port)+')')
 client = mqtt.Client()
-if _MQTT_authentication == True:
-	client.username_pw_set(username=_MQTT_user,password=_MQTT_pass)
+if _MQTT_authentication:
+    client.username_pw_set(username=_MQTT_user, password=_MQTT_pass)
 client.on_connect = on_connect_mqtt
 client.on_message = on_message_mqtt
 client.connect(_MQTT_ip, _MQTT_port)
 client.loop_start()
-logger.info('Souscription au topic ' + str(_MQTT_TOPIC_SUB) + ' avec un Qos=1')
+logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '"')
 client.subscribe(_MQTT_TOPIC_SUB, qos=1)
 
 if __name__ == "__main__":
-	while True:
-		logger.info("Etablissement d'une nouvelle connection au serveur websocket (IP:"+_MCZip+" PORT:"+_MCZport+")")
-		websocket.enableTrace(False)
-		ws = websocket.WebSocketApp("ws://" + _MCZip + ":" + _MCZport,
-									on_message = on_message,
-									on_error = on_error,
-									on_close = on_close)
-		ws.on_open = on_open
-		ws.run_forever()
-		time.sleep(_INTERVALLE)
+    recuperoinfo_enqueue()
+    SOCKET_RECONNECTED_COUNT = 0
+    while SOCKET_RECONNECTED_COUNT < 1:
+        try:
+            logger.info("Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
+            websocket.enableTrace(False)
+            ws = websocket.WebSocketApp("ws://" + _MCZip + ":" + _MCZport,
+                                        on_message=on_message,
+                                        on_error=on_error,
+                                        on_close=on_close)
+            ws.on_open = on_open
+
+            ws.run_forever(ping_interval=5, ping_timeout=2)
+            time.sleep(1)
+            SOCKET_RECONNECTED_COUNT = SOCKET_RECONNECTED_COUNT + 1
+            logger.info("Socket Connection Count: " + str(SOCKET_RECONNECTED_COUNT))
+        except:
+            pass

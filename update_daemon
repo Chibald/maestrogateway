@@ -15,8 +15,10 @@ if [ ! -d "/opt/maestro/" ];then
 	chmod -R 0755 /opt/maestro/
 fi
 
-cp _data_.py /opt/maestro
+cp command.py /opt/maestro
+cp messages.py /opt/maestro
 cp maestro.py /opt/maestro
+
 cp maestro.service /etc/systemd/system
 chmod a+x /etc/systemd/system/maestro.service
 echo "Redemarage du service, la fenetre pourra etre fermee."
