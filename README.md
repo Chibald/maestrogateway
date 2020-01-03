@@ -21,6 +21,17 @@ Also all basic commands that you can send using the official MZC app are availab
 ### Recieving information
 Every 15 seconds the maestro.service will post an update to the Mqtt topic.
 
+```
+{ "Stove_State": 0, "Fan_State": 1, "DuctedFan1": 0.0, "DuctedFan2": 0.0, "Fume_Temperature": 22.5, "Ambient_Temperature": 19.5, "Puffer_Temperature": 127.5, "Boiler_Temperature": 51.0, "NTC3_Temperature": 127.5, "Candle_Condition": 0, "ACTIVE_Set": 150, "RPM_Fam_Fume": 0, "RPM_WormWheel_Set": 0, "RPM_WormWheel_Live": 0, "3WayValve": "Risc", "Pump_PWM": 0, "Brazier": "OK", "Profile": 1, "Modbus_Address": 41, "Active_Mode": 1, "Active_Live": 99, "Control_Mode": 1, "ECO_Mode": 1, "Silent_Mode": 0, "Chrono_Mode": 1 
+.....
+```
+the script will check if value has changed, so next messages are filtered for changes vakues only
+
+for example:
+```
+{"Ambient_Temperature": 19.0}
+```
+
 ### Sending commands
 Publish Json command on the command Mqtt - topic to issue commands.
 Examples:
