@@ -8,6 +8,7 @@ fi
 echo "Installation des dépendances"
 pip3 install paho-mqtt
 pip3 install websocket-client
+
 echo "Copie des fichiers necessaires"
 if [ ! -d "/opt/maestro/" ];then
 	mkdir /opt/maestro/
@@ -15,8 +16,8 @@ if [ ! -d "/opt/maestro/" ];then
 	chmod -R 0755 /opt/maestro/
 fi
 
-cp _config_.py /opt/maestro
-cp _data_.py /opt/maestro
+cp command.py /opt/maestro
+cp messages.py /opt/maestro
 cp maestro.py /opt/maestro
 
 python3 /opt/maestro/maestro.py
