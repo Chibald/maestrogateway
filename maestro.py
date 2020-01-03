@@ -161,7 +161,7 @@ client.subscribe(_MQTT_TOPIC_SUB, qos=1)
 if __name__ == "__main__":
     recuperoinfo_enqueue()
     SOCKET_RECONNECTED_COUNT = 0
-    while SOCKET_RECONNECTED_COUNT < 1:
+    while True: #SOCKET_RECONNECTED_COUNT < 1:
         try:
             logger.info("Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
             websocket.enableTrace(False)
@@ -174,6 +174,6 @@ if __name__ == "__main__":
             ws.run_forever(ping_interval=5, ping_timeout=2)
             time.sleep(1)
             SOCKET_RECONNECTED_COUNT = SOCKET_RECONNECTED_COUNT + 1
-            logger.info("Socket Connection Count: " + str(SOCKET_RECONNECTED_COUNT))
+            logger.info("Socket Reconnection Count: " + str(SOCKET_RECONNECTED_COUNT))
         except:
             pass
