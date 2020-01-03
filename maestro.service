@@ -1,5 +1,5 @@
 [Unit]
-Description=Passerelle Equipements MCZ Maestro avec serveur MQTT
+Description=MCZ Maestro Equipment Gateway with MQTT Server
 After=network.target
 ConditionPathExists=/opt/maestro
 [Service]
