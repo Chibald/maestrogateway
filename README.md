@@ -2,13 +2,13 @@
 ![Warning](https://github.com/Chibald/maestrogateway/blob/master/docs/disclaimer.png)
 
 
-This is a script for relaying messages to a MZC Maestro pellet stove. All of this software is provided AS-IS with no implied warranty or liability under sections 15, and 16 of the GPL V3. So if your stove burns down your house, it's not my fault.
+This is a script for relaying messages to a MCZ Maestro pellet stove. All of this software is provided AS-IS with no implied warranty or liability under sections 15, and 16 of the GPL V3. So if your stove burns down your house, it's not my fault.
 
 # MCZ Maestro Equipment Gateway with Mqtt / JSON
 Python script for controlling Pellet Stoves using Maestro technology.
 
 It is known to work with newer pellet stoves from MZC
-Personally I use it using a MZC Musa Hydro stove.
+Personally I use it using a MCZ Musa Hydro stove.
 
 ## About Maestro
 Maestro technology uses a Websocket to communicatie with the pellet stove. It is used by the MZC Maestro App and also by external thermostats.
@@ -56,7 +56,7 @@ Check out the list in commands.py for available commands.
 
 
 ## Hardware Prerequisities
-The MZC pellet stove has its own Wifi SSID. The easiest way to bridge this connection is by using a Raspberry 3 with a wired ethernet to your lan, and to configure the onboard Wifi to connect to the SSID of the pellet stove. But any device with two lans will work.
+The MCZ pellet stove has its own Wifi SSID. The easiest way to bridge this connection is by using a Raspberry 3 with a wired ethernet to your lan, and to configure the onboard Wifi to connect to the SSID of the pellet stove. But any device with two lans will work.
 
 ## Software Prerequisities
 You will need a Home Automation software with MQTT broker. Personally I use openHab and it works fine. 
