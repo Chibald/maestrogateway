@@ -31,7 +31,7 @@ MAESTRO_INFORMATION.append(MaestroInformation(1, "Stove_State", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(2, "Fan_State", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(3, "DuctedFan1", 'temperature'))
 MAESTRO_INFORMATION.append(MaestroInformation(4, "DuctedFan2", 'temperature'))
-MAESTRO_INFORMATION.append(MaestroInformation(5, "Fume_Temperature", 'temperature'))
+MAESTRO_INFORMATION.append(MaestroInformation(5, "Fume_Temperature", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(6, "Ambient_Temperature", 'temperature'))
 MAESTRO_INFORMATION.append(MaestroInformation(7, "Puffer_Temperature", 'temperature'))  # != 255 == Hydro
 MAESTRO_INFORMATION.append(MaestroInformation(8, "Boiler_Temperature", 'temperature'))
