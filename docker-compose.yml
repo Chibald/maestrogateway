@@ -1,0 +1,9 @@
+version: '3.3'
+services:
+
+  maestrogateway:
+    image: maestro
+    network_mode: host
+    build:
+        context: ./
+
