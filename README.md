@@ -114,7 +114,7 @@ docker-compose build
 docker-compose up -d
 ```
 
-stop the container
+### stop the container
 ```
 docker-compose down
 ```
@@ -125,7 +125,6 @@ docker-compose down
 ```
 cd maestro
 git pull
-sudo bash update_daemon
 ```
 
 if you are running maestrogateway as a local service:
