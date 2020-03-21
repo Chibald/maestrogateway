@@ -71,8 +71,8 @@ The pellet stove willl typically run at a designated ip address 192.168.120.1 (t
 So a good place to start is setting up a device like a RPI connected to the Wifi of the stove.
 Make sure you can ping the device before proceeding.
 
-## Script Installation (RPI)
-create a folder, in this folder run:
+## Script Installation (RPI) 
+create a folder "maestro", in this folder run:
 
 ```sh
 git clone https://github.com/Chibald/maestrogateway .
@@ -98,17 +98,54 @@ To start the daemon
 sudo systemctl start maestro.service
 ```
 
+## Docker Installation
+
+It is possible to run maestrogateway inside a docker container. It requires the installation of docker and docker-compose. 
+
+If you are using a raspberry pi you can use the scripts from gcgarner/IOTStack to make installation easy.
+https://github.com/gcgarner/IOTstack
+
+
+
+# build the docker image
+```
+docker-compose build
+```
+
+# run the container 
+```
+docker-compose up -d
+```
+
+stop the container
+```
+docker-compose down
+```
+
+
 ## Updating:
-```sh
+```
 cd maestro
 git pull
 sudo bash update_daemon
 ```
 
+if you are running maestrogatewayy as a local service:
+
+```
+sudo bash update_daemon
+```
+
+if you are running as docker container
+```
+docker-compose build
+docker-compose up -d
+```
+
+
 # Credits
 This script is based on a script from Anthony L which you can find here.
 https://github.com/Anthony-55/maestro
-
 
 His version is made for Jeedom, a French HA system. The jeedom forum has got interesting topics about managing pellet stoves and heaters using Jeedom. ex.
 https://community.jeedom.com/t/mcz-maestro-et-jeedom/6159
