@@ -99,20 +99,17 @@ sudo systemctl start maestro.service
 ```
 
 ## Docker Installation
-
 It is possible to run maestrogateway inside a docker container. It requires the installation of docker and docker-compose. 
 
 If you are using a raspberry pi you can use the scripts from gcgarner/IOTStack to make installation easy.
 https://github.com/gcgarner/IOTstack
 
-
-
-# build the docker image
+### build the docker image
 ```
 docker-compose build
 ```
 
-# run the container 
+### run the container 
 ```
 docker-compose up -d
 ```
@@ -122,26 +119,27 @@ stop the container
 docker-compose down
 ```
 
-
 ## Updating:
+!! Before updating, make a back up of your config file !!
+
 ```
 cd maestro
 git pull
 sudo bash update_daemon
 ```
 
-if you are running maestrogatewayy as a local service:
+if you are running maestrogateway as a local service:
 
 ```
 sudo bash update_daemon
 ```
 
-if you are running as docker container
+if you are running as docker container:
+
 ```
 docker-compose build
 docker-compose up -d
 ```
-
 
 # Credits
 This script is based on a script from Anthony L which you can find here.
