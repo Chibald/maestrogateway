@@ -14,6 +14,7 @@ from _config_ import _MQTT_user
 from _config_ import _MQTT_authentication
 from _config_ import _MQTT_TOPIC_PUB
 from _config_ import _MQTT_TOPIC_SUB
+from _config_ import _MQTT_PAYLOAD_TYPE
 from _config_ import _MQTT_port
 from _config_ import _MQTT_ip
 from commands import MaestroCommand, get_maestro_command, maestrocommandvalue_to_websocket_string, MaestroCommandValue
