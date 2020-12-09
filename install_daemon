@@ -18,7 +18,7 @@ if [ ! -d "/opt/maestro/" ];then
 fi
 
 cp _config_.py /opt/maestro
-cp commands.py /opt/maestro
+cp command.py /opt/maestro
 cp messages.py /opt/maestro
 cp maestro.py /opt/maestro
 
