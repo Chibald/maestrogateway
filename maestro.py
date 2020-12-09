@@ -138,7 +138,7 @@ def on_message(ws, message):
     if message_array[0] == MaestroMessageType.Info.value:
         process_info_message(message)
     else:
-        logger.info('Unsupported message type recieved !')
+        logger.info('Unsupported message type received !')
 
 def on_error(ws, error):
     logger.info(error)
