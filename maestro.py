@@ -14,6 +14,7 @@ from _config_ import _MQTT_user
 from _config_ import _MQTT_authentication
 from _config_ import _MQTT_TOPIC_PUB
 from _config_ import _MQTT_TOPIC_SUB
+from _config_ import _MQTT_PAYLOAD_TYPE
 from _config_ import _MQTT_port
 from _config_ import _MQTT_ip
 from commands import MaestroCommand, get_maestro_command, maestrocommandvalue_to_websocket_string, MaestroCommandValue
@@ -77,16 +78,30 @@ def on_connect_mqtt(client, userdata, flags, rc):
     logger.info("MQTT: Connected to broker. " + str(rc))
 
 def on_message_mqtt(client, userdata, message):
-    logger.info('MQTT: Message recieved: ' + str(message.payload.decode()))
-    res = json.loads(str(message.payload.decode()))
-    maestrocommand = get_maestro_command(res["Command"])
-    if maestrocommand.name == "Unknown":
-        logger.info('Unknown Maestro JSON Command Recieved. Ignoring.' + message)
-    elif maestrocommand.name == "Refresh":
-        logger.info('Clearing the message cache')
-        MaestroInfoMessageCache.clear()
-    else:
-        CommandQueue.put(MaestroCommandValue(maestrocommand, float(res["Value"])))
+    try:
+        maestrocommand = None
+        cmd_value = None
+        payload = str(message.payload.decode())
+        if _MQTT_PAYLOAD_TYPE == 'TOPIC':
+            topic = str(message.topic)
+            command = topic[str(topic).rindex('/')+1:]
+            logger.info(f"Command topic received: {command}")
+            maestrocommand = get_maestro_command(command)
+            cmd_value = float(payload)
+        else:
+            logger.info(f"MQTT: Message received: {payload}")
+            res = json.loads(payload)
+            maestrocommand = get_maestro_command(res["Command"])
+            cmd_value = float(res["Value"])
+        if maestrocommand.name == "Unknown":
+            logger.info(f"Unknown Maestro JSON Command Received. Ignoring. {payload}")
+        elif maestrocommand.name == "Refresh":
+            logger.info('Clearing the message cache')
+            MaestroInfoMessageCache.clear()
+        else:
+            CommandQueue.put(MaestroCommandValue(maestrocommand, cmd_value))
+    except Exception as e: # work on python 3.x
+            logger.error('Exception in on_message: '+ str(e))
 
 def recuperoinfo_enqueue():
     """Get Stove information every x seconds as long as there is a websocket connection"""
@@ -107,13 +122,15 @@ def process_info_message(message):
             MaestroInfoMessageCache[item] = res[item]
             maestro_info_message_publish[item] = res[item]
 
-    if len(maestro_info_message_publish) == 0:
-        maestro_info_message_publish["Status"] = "No Changes"
-
-    logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB) +
-                '", Message : ' + str(json.dumps(maestro_info_message_publish)))
-
-    client.publish(_MQTT_TOPIC_PUB, json.dumps(maestro_info_message_publish), 1)
+    if len(maestro_info_message_publish) > 0:
+        if _MQTT_PAYLOAD_TYPE == 'TOPIC':
+            json_dictionary = json.loads(str(json.dumps(maestro_info_message_publish)))
+            for key in json_dictionary:
+                logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB+'/'+key) +
+                        '", Message : ' + str(json_dictionary[key]))
+                client.publish(_MQTT_TOPIC_PUB+'/'+key, json_dictionary[key], 1)
+        else:
+            client.publish(_MQTT_TOPIC_PUB, json.dumps(maestro_info_message_publish), 1)
 
 
 def on_message(ws, message):
@@ -121,7 +138,7 @@ def on_message(ws, message):
     if message_array[0] == MaestroMessageType.Info.value:
         process_info_message(message)
     else:
-        logger.info('Unsupported message type recieved !')
+        logger.info('Unsupported message type received !')
 
 def on_error(ws, error):
     logger.info(error)
@@ -155,8 +172,13 @@ client.on_connect = on_connect_mqtt
 client.on_message = on_message_mqtt
 client.connect(_MQTT_ip, _MQTT_port)
 client.loop_start()
-logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '"')
-client.subscribe(_MQTT_TOPIC_SUB, qos=1)
+if _MQTT_PAYLOAD_TYPE == 'TOPIC':
+    logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '/#"')
+    client.subscribe(_MQTT_TOPIC_SUB+'/#', qos=1)
+else:
+    logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '"')
+    client.subscribe(_MQTT_TOPIC_SUB, qos=1)
+
 
 if __name__ == "__main__":
     recuperoinfo_enqueue()
