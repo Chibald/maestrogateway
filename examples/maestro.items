@@ -1,0 +1,59 @@
+// MCZ Pellet Ofen
+Group								gGFLR_MCZ								"Pelletofen Thermostat"																													[ "Thermostat" ]					{ga="Thermostat" [ useFahrenheit=false ]}
+String Status	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczStatus" }
+String Stove_State  (gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczStove_State"[profile="transform:MAP", function="maestro_stovestate_text.map"] }
+String Stove_State_Simple  (gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczStove_State"[profile="transform:MAP", function="maestro_stovestate_simple_text.map"] }
+String Fan_State	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczFan_State" }
+String DuctedFan1	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczDuctedFan1" }
+String DuctedFan2	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczDuctedFan2" }
+String Fume_Temperature	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczFume_Temperature" }
+String Ambient_Temperature	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczAmbient_Temperature" }
+String Puffer_Temperature	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczPuffer_Temperature" }
+String Boiler_Temperature	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczBoiler_Temperature" }
+String NTC3_Temperature	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczNTC3_Temperature" }
+String Candle_Condition	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczCandle_Condition" }
+String ACTIVE_Set	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczACTIVE_Set" }
+String RPM_Fam_Fume	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczRPM_Fam_Fume" }
+String RPM_WormWheel_Set	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczRPM_WormWheel_Set" }
+String RPM_WormWheel_Live	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczRPM_WormWheel_Live" }
+String 3WayValve	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mcz3WayValve" }
+String Pump_PWM	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczPump_PWM" }
+String Brazier	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczBrazier" }
+String Profile	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczProfile" }
+String Modbus_Address	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczModbus_Address" }
+String Active_Mode	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczActive_Mode" }
+String Active_Live	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczActive_Live" }
+String Control_Mode	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczControl_Mode" }
+String ECO_Mode	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczECO_Mode" }
+String Silent_Mode	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczSilent_Mode" }
+String Chrono_Mode	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczChrono_Mode" }
+String Temperature_Setpoint	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczTemperature_Setpoint" }
+String Boiler_Setpoint	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczBoiler_Setpoint" }
+String Temperature_Motherboard	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczTemperature_Motherboard" }
+String Power_Level	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczPower_Level"[profile="transform:MAP", function="maestro_powerlevel.map"] }
+String FirmwareVersion	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczFirmwareVersion" }
+String DatabaseID	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczDatabaseID" }
+String Date_Time_Hours	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczDate_Time_Hours" }
+String Date_Time_Minutes	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczDate_Time_Minutes" }
+String Date_Day_Of_Month	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczDate_Day_Of_Month" }
+String Date_Month	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczDate_Month" }
+String Date_Year	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczDate_Year" }
+String Total_Operating_Hours	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczTotal_Operating_Hours" }
+String Hours_Of_Operation_In_Power1	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczHours_Of_Operation_In_Power1" }
+String Hours_Of_Operation_In_Power2	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczHours_Of_Operation_In_Power2" }
+String Hours_Of_Operation_In_Power3	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczHours_Of_Operation_In_Power3" }
+String Hours_Of_Operation_In_Power4	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczHours_Of_Operation_In_Power4" }
+String Hours_Of_Operation_In_Power5	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczHours_Of_Operation_In_Power5" }
+String Hours_To_Service	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczHours_To_Service" }
+String Minutes_To_Switch_Off	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczMinutes_To_Switch_Off" }
+String Number_Of_Ignitions	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczNumber_Of_Ignitions" }
+String Active_Temperature	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczActive_Temperature" }
+String Celcius_Or_Fahrenheit	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczCelcius_Or_Fahrenheit" }
+String Sound_Effects	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczSound_Effects" }
+String Sound_Effects_State	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczSound_Effects_State" }
+String Sleep	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczSleep" }
+String Mode	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczMode"}
+String WifiSondeTemperature1	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczWifiSondeTemperature1" }
+String WifiSondeTemperature2	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczWifiSondeTemperature2" }
+String WifiSondeTemperature3	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczWifiSondeTemperature3" }
+String Unknown	(gGFLR_MCZ, gGF_Livingroom) {  channel="mqtt:topic:mything:mczUnknown" }

@@ -1,0 +1,47 @@
+val logger = "MZC.rules"
+// Openhab 2.5.x MQTT-Broker
+val mqttActions = getActions("mqtt", "mqtt:broker:mosquitto-broker")
+
+
+val Maestro_Temperature_Setpoint_Manual = 0
+var Timer Temperature_Setpoint_Send = null
+var Timer Temperature_Setpoint_Expire = null
+
+val Maestro_Boiler_Setpoint_Manual = 0
+var Timer Boiler_Setpoint_Send = null
+var Timer Boiler_Setpoint_Expire = null
+
+//val Number newFanState = 0
+//val Number oldFanState = 0
+
+rule "MCZ ein" 
+when
+    Item mczSwitch_Proxy received command ON 
+then
+   logInfo(logger, "Regel MCZ ein triggered")
+   mqttActions.publishMQTT("SUBmcz\Power", 1)  
+   mczSwitch_Proxy.postUpdate(ON)
+end
+
+rule "MCZ aus"
+when
+    Item mczSwitch_Proxy received command OFF
+then
+   logInfo(logger, "Regel MCZ aus triggered")
+   mqttActions.publishMQTT("SUBmcz\Power", 0)
+   mczSwitch_Proxy.postUpdate(OFF)
+end
+
+// See https://community.openhab.org/t/yet-another-heating-setup/82210
+
+rule 'MCZ Target Temperature Proxy Update'
+when 
+   Item Maestro_Temperature_Setpoint_Proxy received command
+then
+   logInfo(logger, "Regel MCZ Target Temperature Proxy Update triggered")
+   val targetTemp = (Maestro_Temperature_Setpoint_Proxy.state as QuantityType<Number>).doubleValue
+   logInfo(logger, "{ \"Command\": \"Temperature_Setpoint\", \"Value\": " + targetTemp + "}")
+   mqttActions.publishMQTT("SUBmcz\Temperature_Setpoint", targetTemp)
+   Maestro_Temperature_Setpoint_Proxy.postUpdate(targetTemp)
+end
+
