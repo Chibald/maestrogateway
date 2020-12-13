@@ -1,26 +1,58 @@
 #!/bin/sh
 
 if [ $(whoami) != 'root' ]; then
-	echo -e "\nVous devez avoir les droits super-utilisateur pour executer $0"
-	exit 1;
+        echo -e "\nInsuffiecent Rights. (Vous devez avoir les droits super-utilisateur pour executer $0)"
+        exit 1;
 fi
 
+# Check Python 3 is installed
+if [[ ! $(which python3) ]]; then
+        echo "Python 3 is required"
+        exit 1
+fi
 echo "Installation des dépendances"
-pip install paho-mqtt
-pip install websocket-client
-echo "Copie des fichiers necessaires"
-if [ ! -d "/opt/maestro/" ];then
-	mkdir /opt/maestro/
-	chown -R $USER /opt/maestro/
-	chmod -R 0755 /opt/maestro/
+apt-get update
+apt-get install build-essential \
+    libsystemd-dev
+/usr/bin/python3 -m pip install paho-mqtt
+/usr/bin/python3 -m pip install websocket-client
+/usr/bin/python3 -m pip install systemd-python
+/usr/bin/python3 -m pip install psutil
+
+echo "Creating service user"
+SERVICE_USER='maestro_service'
+SERVICE_GROUP='maestro_service'
+
+if [[ $(grep -q "^${SERVICE_GROUP}:" /etc/group) ]]; then
+        groupadd $SERVICE_GROUP
 fi
 
-cp _config_.py /opt/maestro
-cp commands.py /opt/maestro
-cp messages.py /opt/maestro
-cp maestro.py /opt/maestro
+if [[ ! $(id -u $SERVICE_USER) ]]; then
+        useradd -r -s /bin/false maestro_service
+        usermod -g $SERVIC_GROUP $SERVICE_USER
+fi
+
+echo "Stopping service (Arret du service maestro)"
+systemctl stop maestro.service
+
+echo "Copy files. (Copie des fichiers necessaires)"
+if [ ! -d "/usr/local/lib/maestro_service" ];then
+        mkdir -p /usr/local/lib/maestro_service
+        chown -R $SERVICE_USER:$SERVICE_GROUP /usr/local/lib/maestro_service
+fi
+
+cp _config_.py /usr/local/lib/maestro_service
+cp commands.py /usr/local/lib/maestro_service
+cp messages.py /usr/local/lib/maestro_service
+cp maestro.py /usr/local/lib/maestro_service
+
+if [ ! -d "/usr/local/lib/maestro_service" ];then
+        chown -R $SERVICE_USER:$SERVICE_GROUP /usr/local/lib/maestro_service/*
+        chmod -R 0755 /usr/local/lib/maestro_service/*
+fi
 
 cp maestro.service /etc/systemd/system
-chmod a+x /etc/systemd/system/maestro.service
+chmod a-x /etc/systemd/system/maestro.service
 systemctl --system daemon-reload
+systemctl enable maestro.service
 echo "Fin de l'installation, tapez sudo systemctl start maestro.service pour lancer le daemon" 

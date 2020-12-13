@@ -1,14 +1,18 @@
 [Unit]
 Description=MCZ Maestro Equipment Gateway with MQTT Server
 After=network.target
-ConditionPathExists=/opt/maestro
+StartLimitIntervalSec=0
+ConditionPathExists=/usr/local/lib/maestro_service
 [Service]
-Type=forking
-ExecStart=/usr/bin/python '/opt/maestro/maestro.py'
+Environment=PYTHONUNBUFFERED=1
+Type=notify
+User=maestro_service
+Group=maestro_service
+ExecStart=/usr/bin/python3 /usr/local/lib/maestro_service/maestro.py
 TimeoutSec=0
 StandardOutput=tty
 RemainAfterExit=yes
-SysVStartPriority=99
 Restart=always
+RestartSec=3
 [Install]
 WantedBy=multi-user.target
