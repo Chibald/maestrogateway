@@ -5,19 +5,51 @@ if [ $(whoami) != 'root' ]; then
 	exit 1;
 fi
 
+# Check Python 3 is installed
+if [[ ! $(which python3) ]]; then
+        echo "Python 3 is required"
+        exit 1
+fi
+
+echo "Creating service user"
+SERVICE_USER='maestro_service'
+SERVICE_GROUP='maestro_service'
+
+id -g $SERVICE_GROUP >& /dev/null
+if [ $? -eq 1 ]; then
+	groupadd $SERVICE_GROUP
+fi
+
+id -u $SERVICE_USER >& /dev/null
+if [ $? -eq 1 ]; then
+	useradd -r -s /bin/false maestro_service
+	usermod -g $SERVIC_GROUP $SERVICE_USER
+fi
+
 echo "Stopping service (Arret du service maestro)"
 systemctl stop maestro.service
 
+echo "Installation des dépendances"
+pip install paho-mqtt
+pip install websocket-client
+pip install systemd-python
+/usr/bin/python3 -m pip install psutil
+
 echo "Copy files. (Copie des fichiers necessaires)"
-if [ ! -d "/opt/maestro/" ];then
-	mkdir /opt/maestro/
-	chown -R $USER /opt/maestro/
-	chmod -R 0755 /opt/maestro/
+if [ ! -d "/usr/local/lib/maestro_service" ];then
+	mkdir -p /usr/local/lib/maestro_service
+	chown -R root:$SERVICE_GROUP /usr/local/lib/maestro_service
 fi
 
-cp commands.py /opt/maestro
-cp messages.py /opt/maestro
-cp maestro.py /opt/maestro
+cp _config_.py /usr/local/lib/maestro_service
+cp commands.py /usr/local/lib/maestro_service
+cp messages.py /usr/local/lib/maestro_service
+cp maestro.py /usr/local/lib/maestro_service
+
+if [ -d "/usr/local/lib/maestro_service" ];then
+	chown -R root:$SERVICE_GROUP /usr/local/lib/maestro_service/*
+	chmod -R 0744 /usr/local/lib/maestro_service/*
+fi
 
 cp maestro.service /etc/systemd/system
 chmod a+x /etc/systemd/system/maestro.service

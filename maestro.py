@@ -1,13 +1,16 @@
 #!/usr/bin/python3
 # coding: utf-8
 import time
+import systemd
+import sys
+import psutil, os
 import json
 import logging
 import threading
-
 import paho.mqtt.client as mqtt
 import websocket
 
+from systemd import daemon, journal
 from logging.handlers import RotatingFileHandler
 from _config_ import _MCZport
 from _config_ import _MCZip
@@ -61,14 +64,20 @@ client = None
 old_connection_status = None
 
 # Logging
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s :: %(levelname)s :: %(message)s')
-file_handler = RotatingFileHandler('activity.log', 'a', 1000000, 1)
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-stream_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s')
+if psutil.Process(os.getpid()).ppid() == 1:
+    # We are using systemd
+    journald_handler=journal.JournalHandler()
+    logger.addHandler(journald_handler)
+else:
+    file_handler = RotatingFileHandler('activity.log', 'a', 1000000, 1)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setFormatter(formatter)
 stream_handler.setLevel(logging.DEBUG)
 logger.addHandler(stream_handler)
 
@@ -203,18 +212,24 @@ if __name__ == "__main__":
     recuperoinfo_enqueue()
     socket_reconnect_count = 0
     start_mqtt()
+    systemd.daemon.notify('READY=1')
     while True:
-        logger.info("Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
-        ws = websocket.WebSocketApp("ws://" + _MCZip + ":" + _MCZport,
-                                    on_message=on_message,
-                                    on_error=on_error,
-                                    on_close=on_close)
-        ws.on_open = on_open
+        try:
+            logger.info("Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
 
-        ws.run_forever(ping_interval=5, ping_timeout=2)
-        time.sleep(1)
-        socket_reconnect_count = socket_reconnect_count + 1
-        logger.info("Socket Reconnection Count: " + str(socket_reconnect_count))
-        if socket_reconnect_count>_WS_RECONNECTS_BEFORE_ALERT:
-            send_connection_status_message({"Status":"disconnected"})
-            socket_reconnect_count = 0
+            ws = websocket.WebSocketApp("ws://" + _MCZip + ":" + _MCZport,
+                                        on_message=on_message,
+                                        on_error=on_error,
+                                        on_close=on_close)
+            ws.on_open = on_open
+
+            ws.run_forever(ping_interval=5, ping_timeout=2)
+            time.sleep(1)
+            socket_reconnect_count = socket_reconnect_count + 1
+            logger.info("Socket Reconnection Count: " + str(socket_reconnect_count))
+            if socket_reconnect_count>_WS_RECONNECTS_BEFORE_ALERT:
+                send_connection_status_message({"Status":"disconnected"})
+                socket_reconnect_count = 0
+        except:
+            pass
+
