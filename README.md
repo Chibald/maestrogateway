@@ -1,4 +1,5 @@
-https://github.com/Chibald/MaestroGateway/workflows/Build/badge.svg
+![Build](https://github.com/Chibald/MaestroGateway/workflows/Build/badge.svg)
+
 
 ![Warning](https://github.com/Chibald/maestrogateway/blob/master/docs/disclaimer.png)
 
