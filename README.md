@@ -1,6 +1,6 @@
 [![Build](https://github.com/Chibald/MaestroGateway/workflows/Build/badge.svg)](https://github.com/Chibald/maestrogateway/actions?query=workflow%3ABuild)
-[![Standalone](https://github.com/Chibald/MaestroGateway/workflows/Standalone/badge.svg)](https://github.com/Chibald/maestrogateway/actions?query=workflow%Standalone)
-[![Daemon Service](https://github.com/Chibald/MaestroGateway/workflows/Daemon%20Service/badge.svg)](https://github.com/Chibald/maestrogateway/actions?query=workflow%Daemon%20Service)
+[![Standalone](https://github.com/Chibald/MaestroGateway/workflows/Standalone/badge.svg)](https://github.com/Chibald/maestrogateway/actions?query=workflow%3AStandalone)
+[![Daemon Service](https://github.com/Chibald/MaestroGateway/workflows/Daemon%20Service/badge.svg)](https://github.com/Chibald/maestrogateway/actions?query=workflow%3A%22Daemon+Service%22)
 
 ![Warning](https://github.com/Chibald/maestrogateway/blob/master/docs/disclaimer.png)
 
