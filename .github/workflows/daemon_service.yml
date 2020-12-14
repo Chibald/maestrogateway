@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
 
     steps:
     - uses: actions/checkout@v2
@@ -34,13 +34,11 @@ jobs:
     - name: Install Service
       run: |
         sudo -H bash install_daemon
-    - name: Test Standalone Script
-      run: |        
-         timeout 20 python3 /usr/local/lib/maestro_service/maestro.py || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
     - name: Test Service Start
       run: |                 
          sudo systemctl start maestro.service
     - name: Test Service Status
+      if: always()
       run: |                 
          sudo systemctl status maestro.service         
     - name: Service logs
