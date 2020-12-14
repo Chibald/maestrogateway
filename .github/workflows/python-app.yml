@@ -19,6 +19,8 @@ jobs:
         python-version: 3.7
     - name: Install dependencies
       run: |
+        sudo apt-get install build-essential \
+          libsystemd-dev
         python -m pip install --upgrade pip 
         pip install flake8 pytest wheel 
         pip install setuptools
@@ -32,9 +34,15 @@ jobs:
     - name: Install Service
       run: |
         sudo -H bash install_daemon
-    - name: Test Service
+    - name: Test Standalone Script
       run: |        
          timeout 20 python3 /usr/local/lib/maestro_service/maestro.py || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+    - name: Test Service Start
+      run: |                 
+         sudo systemctl start maestro.service
+    - name: Test Service Status
+      run: |                 
+         sudo systemctl status maestro.service         
     - name: Service logs
       if: always()
       run: |                 
