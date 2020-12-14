@@ -170,6 +170,7 @@ def on_open(ws):
     send_connection_status_message({"Status":"connected"})
     global websocket_connected
     websocket_connected = True
+    socket_reconnect_count = 0
     def run(*args):
         for i in range(360*4):
             time.sleep(0.25)
