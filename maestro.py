@@ -1,10 +1,17 @@
 #!/usr/bin/python3
 # coding: utf-8
 import time
+import systemd
+import sys
+import psutil, os
 import json
 import logging
 import threading
+import paho.mqtt.client as mqtt
+import websocket
 
+from systemd.journal import JournalHandler
+from systemd import daemon
 from logging.handlers import RotatingFileHandler
 from _config_ import _MCZport
 from _config_ import _MCZip
@@ -57,14 +64,20 @@ GETSTOVEINFO_INTERVAL = 15.0
 WEBSOCKET_CONNECTED = False
 
 # Logging
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s :: %(levelname)s :: %(message)s')
-file_handler = RotatingFileHandler('activity.log', 'a', 1000000, 1)
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-stream_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s')
+if psutil.Process(os.getpid()).ppid() == 1:
+    # We are using systemd
+    journald_handler=JournalHandler()
+    logger.addHandler(journald_handler)
+else:
+    file_handler = RotatingFileHandler('activity.log', 'a', 1000000, 1)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setFormatter(formatter)
 stream_handler.setLevel(logging.DEBUG)
 logger.addHandler(stream_handler)
 
@@ -183,7 +196,8 @@ else:
 if __name__ == "__main__":
     recuperoinfo_enqueue()
     SOCKET_RECONNECTED_COUNT = 0
-    while True: #SOCKET_RECONNECTED_COUNT < 1:
+    systemd.daemon.notify('READY=1')
+    while True:
         try:
             logger.info("Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
             websocket.enableTrace(False)

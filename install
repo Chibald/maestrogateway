@@ -1,24 +1,36 @@
 #!/bin/sh
 
 if [ $(whoami) != 'root' ]; then
-	echo -e "\nVous devez avoir les droits super-utilisateur pour executer $0"
-	exit 1;
+        echo -e "\nVous devez avoir les droits super-utilisateur pour executer $0"
+        exit 1;
+fi
+
+# Check Python 3 is installed
+if [[ ! $(which python3) ]]; then
+        echo "Python 3 is required"
+        exit 1
 fi
 
 echo "Installation des dépendances"
-pip3 install paho-mqtt
-pip3 install websocket-client
+apt-get update
+apt-get install build-essential \
+    libsystemd-dev \
+    python-systemd
+/usr/bin/python3 -m pip install paho-mqtt
+/usr/bin/python3 -m pip install websocket-client
+/usr/bin/python3 -m pip install systemd-python
+/usr/bin/python3 -m pip install psutil
 
 echo "Copie des fichiers necessaires"
-if [ ! -d "/opt/maestro/" ];then
-	mkdir /opt/maestro/
-	chown -R $USER /opt/maestro/
-	chmod -R 0755 /opt/maestro/
+if [ ! -d "/usr/local/lib/maestro_service/" ];then
+        mkdir /usr/local/lib/maestro_service/
+        chown -R maestro_service /usr/local/lib/maestro_service/
+        chmod -R 0755 /usr/local/lib/maestro_service/
 fi
 
-cp _config_.py /opt/maestro
-cp command.py /opt/maestro
-cp messages.py /opt/maestro
-cp maestro.py /opt/maestro
+cp _config_.py /usr/local/lib/maestro_service
+cp commands.py /usr/local/lib/maestro_service
+cp messages.py /usr/local/lib/maestro_service
+cp maestro.py /usr/local/lib/maestro_service
 
-python3 /opt/maestro/maestro.py
+python3 /usr/local/lib/maestro_service/maestro.py
