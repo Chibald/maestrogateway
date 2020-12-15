@@ -11,9 +11,12 @@ if [[ ! $(which python3) ]]; then
         exit 1
 fi
 echo "Installation des dépendances"
-pip install paho-mqtt
-pip install websocket-client
-pip install systemd-python
+apt-get update
+apt-get install build-essential \
+    libsystemd-dev
+/usr/bin/python3 -m pip install paho-mqtt
+/usr/bin/python3 -m pip install websocket-client
+/usr/bin/python3 -m pip install systemd-python
 /usr/bin/python3 -m pip install psutil
 
 echo "Creating service user"
@@ -51,9 +54,5 @@ fi
 cp maestro.service /etc/systemd/system
 chmod a-x /etc/systemd/system/maestro.service
 systemctl --system daemon-reload
-echo "Fin de l'installation, tapez sudo systemctl start maestro.service pour lancer le daemon" 
-
-cp maestro.service /etc/systemd/system
-chmod a-x /etc/systemd/system/maestro.service
-systemctl --system daemon-reload
+systemctl enable maestro.service
 echo "Fin de l'installation, tapez sudo systemctl start maestro.service pour lancer le daemon" 

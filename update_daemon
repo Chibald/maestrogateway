@@ -22,7 +22,7 @@ fi
 
 id -u $SERVICE_USER >& /dev/null
 if [ $? -eq 1 ]; then
-	useradd -r -s /bin/false maestro_service
+	useradd -r -s /bin/false $SERVICE_USER
 	usermod -g $SERVIC_GROUP $SERVICE_USER
 fi
 
@@ -30,9 +30,12 @@ echo "Stopping service (Arret du service maestro)"
 systemctl stop maestro.service
 
 echo "Installation des dépendances"
-pip install paho-mqtt
-pip install websocket-client
-pip install systemd-python
+apt-get update
+apt-get install build-essential \
+    libsystemd-dev
+/usr/bin/python3 -m pip install paho-mqtt
+/usr/bin/python3 -m pip install websocket-client
+/usr/bin/python3 -m pip install systemd-python
 /usr/bin/python3 -m pip install psutil
 
 echo "Copy files. (Copie des fichiers necessaires)"

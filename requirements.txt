@@ -1,2 +1,4 @@
 paho-mqtt===1.5.0
 websocket-client===0.57.0
+systemd-python
+psutil

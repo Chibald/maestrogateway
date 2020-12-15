@@ -1,10 +1,9 @@
 [Unit]
 Description=MCZ Maestro Equipment Gateway with MQTT Server
 After=network.target
-StartLimitIntervalSec=0
+StartLimitInterval=0
 ConditionPathExists=/usr/local/lib/maestro_service
 [Service]
-Environment=PYTHONUNBUFFERED=1
 Type=notify
 User=maestro_service
 Group=maestro_service

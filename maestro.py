@@ -10,7 +10,8 @@ import threading
 import paho.mqtt.client as mqtt
 import websocket
 
-from systemd import daemon, journal
+from systemd.journal import JournalHandler
+from systemd import daemon
 from logging.handlers import RotatingFileHandler
 from _config_ import _MCZport
 from _config_ import _MCZip
@@ -69,7 +70,7 @@ logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s')
 if psutil.Process(os.getpid()).ppid() == 1:
     # We are using systemd
-    journald_handler=journal.JournalHandler()
+    journald_handler=JournalHandler()
     logger.addHandler(journald_handler)
 else:
     file_handler = RotatingFileHandler('activity.log', 'a', 1000000, 1)
@@ -216,7 +217,7 @@ if __name__ == "__main__":
     while True:
         try:
             logger.info("Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
-
+            websocket.enableTrace(False)
             ws = websocket.WebSocketApp("ws://" + _MCZip + ":" + _MCZport,
                                         on_message=on_message,
                                         on_error=on_error,
