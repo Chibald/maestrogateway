@@ -22,12 +22,10 @@ from _config_ import _MQTT_authentication
 from _config_ import _MQTT_TOPIC_PUB
 from _config_ import _MQTT_TOPIC_SUB
 from _config_ import _MQTT_PAYLOAD_TYPE
+from _config_ import _WS_RECONNECTS_BEFORE_ALERT
 from _config_ import _MQTT_port
 from _config_ import _MQTT_ip
 from commands import MaestroCommand, get_maestro_command, maestrocommandvalue_to_websocket_string, MaestroCommandValue
-
-import paho.mqtt.client as mqtt
-import websocket
 
 try:
     import thread
@@ -60,8 +58,11 @@ class SetQueue(queue.Queue):
         self.all_items.remove(item)
         return item
 
-GETSTOVEINFO_INTERVAL = 15.0
-WEBSOCKET_CONNECTED = False
+get_stove_info_interval = 15.0
+websocket_connected = False
+socket_reconnect_count = 0
+client = None
+old_connection_status = None
 
 # Logging
 logger = logging.getLogger(__name__)
@@ -118,9 +119,22 @@ def on_message_mqtt(client, userdata, message):
 
 def recuperoinfo_enqueue():
     """Get Stove information every x seconds as long as there is a websocket connection"""
-    threading.Timer(GETSTOVEINFO_INTERVAL, recuperoinfo_enqueue).start()
-    if WEBSOCKET_CONNECTED:
+    threading.Timer(get_stove_info_interval, recuperoinfo_enqueue).start()
+    if websocket_connected:
         CommandQueue.put(MaestroCommandValue(MaestroCommand('GetInfo', 0, 'GetInfo'), 0))
+
+def send_connection_status_message(message):
+    global old_connection_status
+    if old_connection_status != message:
+        if _MQTT_PAYLOAD_TYPE == 'TOPIC':
+            json_dictionary = json.loads(str(json.dumps(message)))
+            for key in json_dictionary:
+                logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB+'/'+key) +
+                        '", Message : ' + str(json_dictionary[key]))
+                client.publish(_MQTT_TOPIC_PUB+'/'+key, json_dictionary[key], 1)
+        else:
+            client.publish(_MQTT_TOPIC_PUB, json.dumps(message), 1)
+        old_connection_status = message
 
 def process_info_message(message):
     """Process websocket array string that has the stove Info message"""
@@ -158,13 +172,15 @@ def on_error(ws, error):
 
 def on_close(ws):
     logger.info('Websocket: Disconnected')
-    global WEBSOCKET_CONNECTED
-    WEBSOCKET_CONNECTED = False
+    global websocket_connected
+    websocket_connected = False
 
 def on_open(ws):
     logger.info('Websocket: Connected')
-    global WEBSOCKET_CONNECTED
-    WEBSOCKET_CONNECTED = True
+    send_connection_status_message({"Status":"connected"})
+    global websocket_connected
+    websocket_connected = True
+    socket_reconnect_count = 0
     def run(*args):
         for i in range(360*4):
             time.sleep(0.25)
@@ -176,40 +192,41 @@ def on_open(ws):
         ws.close()
     thread.start_new_thread(run, ())
 
-logger.info('Connection in progress to the MQTT broker (IP:' +
-            _MQTT_ip + ' PORT:'+str(_MQTT_port)+')')
-client = mqtt.Client()
-if _MQTT_authentication:
-    client.username_pw_set(username=_MQTT_user, password=_MQTT_pass)
-client.on_connect = on_connect_mqtt
-client.on_message = on_message_mqtt
-client.connect(_MQTT_ip, _MQTT_port)
-client.loop_start()
-if _MQTT_PAYLOAD_TYPE == 'TOPIC':
-    logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '/#"')
-    client.subscribe(_MQTT_TOPIC_SUB+'/#', qos=1)
-else:
-    logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '"')
-    client.subscribe(_MQTT_TOPIC_SUB, qos=1)
-
+def start_mqtt():
+    global client
+    logger.info('Connection in progress to the MQTT broker (IP:' +
+                _MQTT_ip + ' PORT:'+str(_MQTT_port)+')')
+    client = mqtt.Client()
+    if _MQTT_authentication:
+        client.username_pw_set(username=_MQTT_user, password=_MQTT_pass)
+    client.on_connect = on_connect_mqtt
+    client.on_message = on_message_mqtt
+    client.connect(_MQTT_ip, _MQTT_port)
+    client.loop_start()
+    if _MQTT_PAYLOAD_TYPE == 'TOPIC':
+        logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '/#"')
+        client.subscribe(_MQTT_TOPIC_SUB+'/#', qos=1)
+    else:
+        logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '"')
+        client.subscribe(_MQTT_TOPIC_SUB, qos=1)
 
 if __name__ == "__main__":
     recuperoinfo_enqueue()
-    SOCKET_RECONNECTED_COUNT = 0
+    socket_reconnect_count = 0
+    start_mqtt()
     systemd.daemon.notify('READY=1')
     while True:
-        try:
-            logger.info("Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
-            websocket.enableTrace(False)
-            ws = websocket.WebSocketApp("ws://" + _MCZip + ":" + _MCZport,
-                                        on_message=on_message,
-                                        on_error=on_error,
-                                        on_close=on_close)
-            ws.on_open = on_open
+        logger.info("Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
+        ws = websocket.WebSocketApp("ws://" + _MCZip + ":" + _MCZport,
+                                    on_message=on_message,
+                                    on_error=on_error,
+                                    on_close=on_close)
+        ws.on_open = on_open
 
-            ws.run_forever(ping_interval=5, ping_timeout=2)
-            time.sleep(1)
-            SOCKET_RECONNECTED_COUNT = SOCKET_RECONNECTED_COUNT + 1
-            logger.info("Socket Reconnection Count: " + str(SOCKET_RECONNECTED_COUNT))
-        except:
-            pass
+        ws.run_forever(ping_interval=5, ping_timeout=2)
+        time.sleep(1)
+        socket_reconnect_count = socket_reconnect_count + 1
+        logger.info("Socket Reconnection Count: " + str(socket_reconnect_count))
+        if socket_reconnect_count>_WS_RECONNECTS_BEFORE_ALERT:
+            send_connection_status_message({"Status":"disconnected"})
+            socket_reconnect_count = 0
