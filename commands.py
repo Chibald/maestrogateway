@@ -3,6 +3,7 @@
 MCZ Maestro Command class
 These are the supported commands to be set via websocket
 '''
+from datetime import datetime, timedelta
 
 class MaestroCommand(object):
     """Maestro Command. Consists of a readable name., a websocket ID and a command type."""
@@ -36,6 +37,7 @@ MAESTRO_COMMANDS.append(MaestroCommand('Sound_Effects', 50, 'onoff'))
 MAESTRO_COMMANDS.append(MaestroCommand('Power', 34, 'onoff40'))
 MAESTRO_COMMANDS.append(MaestroCommand('Fan_State', 37, 'int'))# 0, 1, 2, 3 ,4,  5 ,6
 MAESTRO_COMMANDS.append(MaestroCommand('Control_Mode', 40, 'onoff')) # 0 = Auto , 1 = Manual
+MAESTRO_COMMANDS.append(MaestroCommand('Set_DateTime', 0, 'datetime')) # Format ddmmYYYYHHMM
 # Untested, proceed with caution
 MAESTRO_COMMANDS.append(MaestroCommand('Feeding_Screw', 34, '49')) # 49 as parameter to socket for feeding screw activiation
 MAESTRO_COMMANDS.append(MaestroCommand('Celsius_Fahrenheit', 49, 'int'))
@@ -64,6 +66,13 @@ def maestrocommandvalue_to_websocket_string(maestrocommandval):
     maestrocommand = maestrocommandval.command
     if maestrocommand.name == "GetInfo":
         write = "C|RecuperoInfo"
+    elif maestrocommand.name == "Set_DateTime":
+        try:
+            # Check if value is a valid date else exception is thrown
+            datetime.strptime(maestrocommandval.value, "%d%m%Y%H%M")
+            write = "C|SalvaDataOra|" + str(maestrocommandval.value)
+        except:
+            pass
     else:
         write = "C|WriteParametri|"
         writevalue = float(maestrocommandval.value)

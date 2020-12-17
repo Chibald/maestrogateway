@@ -16,6 +16,7 @@ class MaestroMessageType(Enum):
     WifiSonde = "0B"
     DatabaseName = "0D"
     SoftwareVersion = "0E"
+    StringData = "AA"
     Ping = "PING"
 
 class MaestroInformation(object):
@@ -87,10 +88,11 @@ MAESTRO_INFORMATION.append(MaestroInformation(57, "SetBoiler", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(58, "SetHealth", 'int'))  # != 255 == Hydro version
 MAESTRO_INFORMATION.append(MaestroInformation(59, "Return_Temperature", 'temperature'))
 MAESTRO_INFORMATION.append(MaestroInformation(60, "AntiFreeze", 'onoff'))
+MAESTRO_INFORMATION.append(MaestroInformation(61, "SaveDateTime", 'datetime'))
 
 def get_maestro_info(frameid):
     """Return Maestro info from the commandlist by name"""
-    if frameid >= 0 and frameid <= 60:
+    if frameid >= 0 and frameid <= 61:
         return MAESTRO_INFORMATION[frameid]
     else:
         return MaestroInformation(frameid, 'Unknown' + str(frameid), 'int')

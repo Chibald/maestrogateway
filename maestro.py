@@ -101,12 +101,18 @@ def on_message_mqtt(client, userdata, message):
             command = topic[str(topic).rindex('/')+1:]
             logger.info(f"Command topic received: {command}")
             maestrocommand = get_maestro_command(command)
-            cmd_value = float(payload)
+            if maestrocommand.commandtype=="datetime":
+                cmd_value=payload
+            else:
+                cmd_value = float(payload)
         else:
             logger.info(f"MQTT: Message received: {payload}")
             res = json.loads(payload)
             maestrocommand = get_maestro_command(res["Command"])
-            cmd_value = float(res["Value"])
+            if maestrocommand.commandtype=="datetime":
+                cmd_value=res["Value"]
+            else:
+                cmd_value = float(res["Value"])
         if maestrocommand.name == "Unknown":
             logger.info(f"Unknown Maestro JSON Command Received. Ignoring. {payload}")
         elif maestrocommand.name == "Refresh":
@@ -140,7 +146,7 @@ def process_info_message(message):
     """Process websocket array string that has the stove Info message"""
     res = process_infostring(message)
     maestro_info_message_publish = {}
-        
+
     for item in res:
         if item not in MaestroInfoMessageCache:
             MaestroInfoMessageCache[item] = res[item]
@@ -162,7 +168,7 @@ def process_info_message(message):
 
 def on_message(ws, message):
     message_array = message.split("|")
-    if message_array[0] == MaestroMessageType.Info.value:
+    if message_array[0] == MaestroMessageType.Info.value | message_array[0] == MaestroMessageType.String.value:
         process_info_message(message)
     else:
         logger.info('Unsupported message type received !')
@@ -185,9 +191,13 @@ def on_open(ws):
         for i in range(360*4):
             time.sleep(0.25)
             while not CommandQueue.empty():
-                cmd = maestrocommandvalue_to_websocket_string(CommandQueue.get())
-                logger.info("Websocket: Send " + str(cmd))
-                ws.send(cmd)        
+                command = CommandQueue.get()
+                cmd = maestrocommandvalue_to_websocket_string(command)
+                if cmd != "":
+                    logger.info("Websocket: Send " + str(cmd))
+                    ws.send(cmd)
+                else:
+                    logger.error(f"Invalid command: {command.name} Value: {command.value}")
         logger.info('Closing Websocket Connection')
         ws.close()
     thread.start_new_thread(run, ())
