@@ -35,6 +35,8 @@ MAESTRO_COMMANDS.append(MaestroCommand('Eco_Mode', 41, 'onoff'))
 MAESTRO_COMMANDS.append(MaestroCommand('Sound_Effects', 50, 'onoff'))
 MAESTRO_COMMANDS.append(MaestroCommand('Power', 34, 'onoff40'))
 MAESTRO_COMMANDS.append(MaestroCommand('Fan_State', 37, 'int'))# 0, 1, 2, 3 ,4,  5 ,6
+MAESTRO_COMMANDS.append(MaestroCommand('DuctedFan1', 38, 'int'))# 0, 1, 2, 3 ,4,  5 ,6
+MAESTRO_COMMANDS.append(MaestroCommand('DuctedFan2', 39, 'int'))# 0, 1, 2, 3 ,4,  5 ,6
 MAESTRO_COMMANDS.append(MaestroCommand('Control_Mode', 40, 'onoff')) # 0 = Auto , 1 = Manual
 # Untested, proceed with caution
 MAESTRO_COMMANDS.append(MaestroCommand('Feeding_Screw', 34, '49')) # 49 as parameter to socket for feeding screw activiation
