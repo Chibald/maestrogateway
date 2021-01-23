@@ -1,31 +1,45 @@
 #!/usr/bin/python3
 # coding: utf-8
+print("Starting Maestrogateway.")
+
 import time
-import systemd
 import sys
-import psutil, os
+
+systemd_available = True
+
+try:
+    import systemd
+    from systemd.journal import JournalHandler
+    from systemd import daemon
+    import psutil, os
+except:
+  print("Systemd is not available. This is the case on docker alpine images and on windows machines")
+  systemd_available = False
+
 import json
 import logging
 import threading
 import paho.mqtt.client as mqtt
 import websocket
 
-from systemd.journal import JournalHandler
-from systemd import daemon
 from logging.handlers import RotatingFileHandler
 from _config_ import _MCZport
 from _config_ import _MCZip
-from messages import MaestroMessageType, process_infostring
+from messages import MaestroMessageType, process_infostring, get_maestro_info
+
 from _config_ import _MQTT_pass
 from _config_ import _MQTT_user
 from _config_ import _MQTT_authentication
-from _config_ import _MQTT_TOPIC_PUB
-from _config_ import _MQTT_TOPIC_SUB
-from _config_ import _MQTT_PAYLOAD_TYPE
+from _config_ import _MQTT_TOPIC_PUB, _MQTT_TOPIC_SUB, _MQTT_PAYLOAD_TYPE
+
 from _config_ import _WS_RECONNECTS_BEFORE_ALERT
 from _config_ import _MQTT_port
 from _config_ import _MQTT_ip
-from commands import MaestroCommand, get_maestro_command, maestrocommandvalue_to_websocket_string, MaestroCommandValue
+from _config_ import _DOCKER
+
+
+
+from commands import MaestroCommand, get_maestro_command, maestrocommandvalue_to_websocket_string, MaestroCommandValue, MAESTRO_COMMANDS
 
 try:
     import thread
@@ -68,7 +82,7 @@ old_connection_status = None
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s')
-if psutil.Process(os.getpid()).ppid() == 1:
+if systemd_available and psutil.Process(os.getpid()).ppid() == 1:
     # We are using systemd
     journald_handler=JournalHandler()
     logger.addHandler(journald_handler)
@@ -208,13 +222,14 @@ def start_mqtt():
         client.subscribe(_MQTT_TOPIC_SUB+'/#', qos=1)
     else:
         logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '"')
-        client.subscribe(_MQTT_TOPIC_SUB, qos=1)
+        client.subscribe(_MQTT_TOPIC_SUB, qos=1)            
 
 if __name__ == "__main__":
     recuperoinfo_enqueue()
     socket_reconnect_count = 0
     start_mqtt()
-    systemd.daemon.notify('READY=1')
+    if systemd_available:
+        systemd.daemon.notify('READY=1')
     while True:
         logger.info("Websocket: Establishing connection to server (IP:"+_MCZip+" PORT:"+_MCZport+")")
         ws = websocket.WebSocketApp("ws://" + _MCZip + ":" + _MCZport,
