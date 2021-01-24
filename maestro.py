@@ -220,7 +220,6 @@ def start_mqtt():
     else:
         logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '"')
         client.subscribe(_MQTT_TOPIC_SUB, qos=1)   
-        print('sadasdsadfsad')         
 
 def init_config():
     print('Reading config from envionment variables')
