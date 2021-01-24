@@ -26,16 +26,16 @@ Configure by setting varables in _config_.py when running in local python mode, 
 | Variable | Description |
 | ----------------------- | ----------- |
 | `MQTT_ip`| Mqtt broker address
-| `_MQTT_port`| Mqtt broker port, default 1883
-| `_MQTT_authentication`| use authentication, True / False
-| `_MQTT_user`| Mqtt User name
-| `_MQTT_pass`| Mqtt password
-| `_MQTT_TOPIC_SUB`| Mqtt topic for command messages here
-| `_MQTT_TOPIC_PUB`| Information messages by daemon are published here
-| `_MQTT_PAYLOAD_TYPE`| Payload as seperate subtopic (_MQTT_PAYLOAD_TYPE='TOPIC') or as JSON (_MQTT_PAYLOAD_TYPE='JSON')
-| `_WS_RECONNECTS_BEFORE_ALERT`| Attempts to reconnect to webserver before publishing a alert on topic PUBmcz/Status
-| `_MCZip`| Stove IP Address. Default is 192.168.120.1
-| `_MCZport`| Stove websicker port. Default is 81
+| `MQTT_port`| Mqtt broker port, default 1883
+| `MQTT_authentication`| use authentication, True / False
+| `MQTT_user`| Mqtt User name
+| `MQTT_pass`| Mqtt password
+| `MQTT_TOPIC_SUB`| Mqtt topic for command messages here
+| `MQTT_TOPIC_PUB`| Information messages by daemon are published here
+| `MQTT_PAYLOAD_TYPE`| Payload as seperate subtopic (_MQTT_PAYLOAD_TYPE='TOPIC') or as JSON (_MQTT_PAYLOAD_TYPE='JSON')
+| `WS_RECONNECTS_BEFORE_ALERT`| Attempts to reconnect to webserver before publishing a alert on topic PUBmcz/Status
+| `MCZip`| Stove IP Address. Default is 192.168.120.1
+| `MCZport`| Stove websicker port. Default is 81
 
 ### Recieving information
 Data is polled from the stove every 15 seconds.
