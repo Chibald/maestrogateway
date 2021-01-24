@@ -4,9 +4,9 @@ print("Starting Maestrogateway.")
 
 import time
 import sys
+import os
 
 systemd_available = True
-
 try:
     import systemd
     from systemd.journal import JournalHandler
@@ -23,21 +23,17 @@ import paho.mqtt.client as mqtt
 import websocket
 
 from logging.handlers import RotatingFileHandler
-from _config_ import _MCZport
-from _config_ import _MCZip
 from messages import MaestroMessageType, process_infostring, get_maestro_info
 
+from _config_ import _MCZport
+from _config_ import _MCZip
 from _config_ import _MQTT_pass
 from _config_ import _MQTT_user
 from _config_ import _MQTT_authentication
 from _config_ import _MQTT_TOPIC_PUB, _MQTT_TOPIC_SUB, _MQTT_PAYLOAD_TYPE
-
 from _config_ import _WS_RECONNECTS_BEFORE_ALERT
 from _config_ import _MQTT_port
 from _config_ import _MQTT_ip
-from _config_ import _DOCKER
-
-
 
 from commands import MaestroCommand, get_maestro_command, maestrocommandvalue_to_websocket_string, MaestroCommandValue, MAESTRO_COMMANDS
 
@@ -212,6 +208,7 @@ def start_mqtt():
                 _MQTT_ip + ' PORT:'+str(_MQTT_port)+')')
     client = mqtt.Client()
     if _MQTT_authentication:
+        print('mqtt authentication enabled')
         client.username_pw_set(username=_MQTT_user, password=_MQTT_pass)
     client.on_connect = on_connect_mqtt
     client.on_message = on_message_mqtt
@@ -222,9 +219,47 @@ def start_mqtt():
         client.subscribe(_MQTT_TOPIC_SUB+'/#', qos=1)
     else:
         logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '"')
-        client.subscribe(_MQTT_TOPIC_SUB, qos=1)            
+        client.subscribe(_MQTT_TOPIC_SUB, qos=1)   
+        print('sadasdsadfsad')         
 
+def init_config():
+    print('Reading config from envionment variables')
+    if (os.getenv('MQTT_ip') != None):
+        global _MQTT_ip
+        _MQTT_ip = os.getenv('MQTT_ip')
+    if (os.getenv('MQTT_port') != None):
+        global _MQTT_port
+        _MQTT_port = int(os.getenv('MQTT_port'))
+    if (os.getenv('MQTT_authentication') != None):
+        global _MQTT_authentication
+        _MQTT_authentication = os.getenv('MQTT_authentication') == "True"
+    if (os.getenv('MQTT_user') != None):
+        global _MQTT_user
+        _MQTT_user = os.getenv('MQTT_user')
+    if (os.getenv('MQTT_pass') != None):
+        global _MQTT_pass
+        _MQTT_pass = os.getenv('MQTT_pass')
+    if (os.getenv('MQTT_TOPIC_PUB') != None):
+        global _MQTT_TOPIC_PUB
+        _MQTT_TOPIC_PUB = os.getenv('MQTT_TOPIC_PUB')
+    if (os.getenv('MQTT_TOPIC_SUB') != None):
+        global _MQTT_TOPIC_SUB
+        _MQTT_TOPIC_SUB = os.getenv('MQTT_TOPIC_SUB')
+    if (os.getenv('MQTT_PAYLOAD_TYPE') != None):
+        global _MQTT_PAYLOAD_TYPE
+        _MQTT_PAYLOAD_TYPE = os.getenv('MQTT_PAYLOAD_TYPE')
+    if (os.getenv('WS_RECONNECTS_BEFORE_ALERT') != None):
+        global _WS_RECONNECTS_BEFORE_ALERT
+        _WS_RECONNECTS_BEFORE_ALERT = int(os.getenv('WS_RECONNECTS_BEFORE_ALERT'))
+    if (os.getenv('MCZip') != None):
+        global _MCZip
+        _MCZip = os.getenv('MCZip')
+    if (os.getenv('MCZport') != None):
+        global _MCZport
+        _MCZport = os.getenv('MCZport')
+    
 if __name__ == "__main__":
+    init_config()
     recuperoinfo_enqueue()
     socket_reconnect_count = 0
     start_mqtt()
