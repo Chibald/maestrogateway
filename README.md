@@ -181,4 +181,4 @@ https://github.com/Anthony-55/maestro
 His version is made for Jeedom, a French HA system. The jeedom forum has got interesting topics about managing pellet stoves and heaters using Jeedom. ex.
 https://community.jeedom.com/t/mcz-maestro-et-jeedom/6159
 
-Also tharts and deSteini have contributed. If you like things changed, improved or added you're welcome to make a Pull Reqqust.
+Also tharts and deSteini have contributed. If you like things changed, improved or added you're welcome to make a Pull Request.
