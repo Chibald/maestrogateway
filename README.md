@@ -17,8 +17,9 @@ Maestro technology uses a Websocket to communicatie with the pellet stove. It is
 https://www.mcz.it/en/maestro-technology/
 
 ## Usage
-This script returns the websocket data and will publish it on MQTT topics which you can use in your home automation  software. You can use this information to display the state of all parameters from the stove.
-Also all basic commands that you can send using the official MZC app are available on another MQTT topic.
+This script returns the websocket data and will publish it on MQTT topics which you can use in your home automation software. You can use this information to display the state of all parameters from the stove. Also all basic commands that you can send using the official MZC app are available on another MQTT topic.
+
+It can be installed locally or using docker, get the latest build from https://hub.docker.com/r/chibald/maestrogateway
 
 ### Configuration
 Configure by setting varables in _config_.py when running in local python mode, or by setting environment variables in docker.
@@ -117,9 +118,7 @@ Make sure you can ping the device at 192.168.120.1 before proceeding.
 
 ## Docker Installation
 It is possible to run maestrogateway inside a docker container. It requires the installation of docker and docker-compose. 
-
-If you are using a raspberry pi you can use the scripts from gcgarner/IOTStack to make installation easy.
-https://github.com/gcgarner/IOTstack
+https://hub.docker.com/r/chibald/maestrogateway
 
 1. Update docker-compose.yml as needed. See example below:
 [Docker-compose](https://docs.docker.com/compose/install/) example:
