@@ -146,7 +146,7 @@ services:
 
     restart: unless-stopped
 ```
-2. Run `docker-compose up --detach` to build and start pi-hole
+2. Run `docker-compose up --detach` to build and start maestrogateway
 
 ## Script Installation (RPI) 
 create a folder "maestro", in this folder run:
