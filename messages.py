@@ -49,9 +49,9 @@ MAESTRO_INFORMATION.append(MaestroInformation(19, "Modbus_Address", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(20, "Active_Mode", 'int'))  # 0: Désactivé, 1: Activé
 MAESTRO_INFORMATION.append(MaestroInformation(21, "Active_Live", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(22, "Control_Mode", 'int'))
-MAESTRO_INFORMATION.append(MaestroInformation(23, "ECO_Mode", 'int'))
+MAESTRO_INFORMATION.append(MaestroInformation(23, "Eco_Mode", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(24, "Silent_Mode", 'int'))
-MAESTRO_INFORMATION.append(MaestroInformation(25, "Chrono_Mode", 'int'))
+MAESTRO_INFORMATION.append(MaestroInformation(25, "Chronostat", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(26, "Temperature_Setpoint", 'temperature'))
 MAESTRO_INFORMATION.append(MaestroInformation(27, "Boiler_Setpoint", 'temperature'))
 MAESTRO_INFORMATION.append(MaestroInformation(28, "Temperature_Motherboard", 'temperature'))
@@ -94,6 +94,15 @@ def get_maestro_info(frameid):
         return MAESTRO_INFORMATION[frameid]
     else:
         return MaestroInformation(frameid, 'Unknown' + str(frameid), 'int')
+
+def get_maestro_infoname(infoname):
+    """Return Maestro command from the message list by name"""
+    i = 0
+    while i < len(MAESTRO_INFORMATION):
+        if infoname == MAESTRO_INFORMATION[i].name:
+            return MAESTRO_INFORMATION[i]
+        i += 1
+    return MaestroInformation(0, 'Unknown', 'int')
 
 def process_infostring(message):
     """convert recuperoinfo message string to array"""
