@@ -17,8 +17,9 @@ Maestro technology uses a Websocket to communicatie with the pellet stove. It is
 https://www.mcz.it/en/maestro-technology/
 
 ## Usage
-This script returns the websocket data and will publish it on MQTT topics which you can use in your home automation  software. You can use this information to display the state of all parameters from the stove.
-Also all basic commands that you can send using the official MZC app are available on another MQTT topic.
+This script returns the websocket data and will publish it on MQTT topics which you can use in your home automation software. You can use this information to display the state of all parameters from the stove. Also all basic commands that you can send using the official MZC app are available on another MQTT topic.
+
+It can be installed locally or using docker, get the latest build from https://hub.docker.com/r/chibald/maestrogateway
 
 ### Configuration
 Configure by setting varables in _config_.py when running in local python mode, or by setting environment variables in docker.
@@ -26,16 +27,17 @@ Configure by setting varables in _config_.py when running in local python mode, 
 | Variable | Description |
 | ----------------------- | ----------- |
 | `MQTT_ip`| Mqtt broker address
-| `_MQTT_port`| Mqtt broker port, default 1883
-| `_MQTT_authentication`| use authentication, True / False
-| `_MQTT_user`| Mqtt User name
-| `_MQTT_pass`| Mqtt password
-| `_MQTT_TOPIC_SUB`| Mqtt topic for command messages here
-| `_MQTT_TOPIC_PUB`| Information messages by daemon are published here
-| `_MQTT_PAYLOAD_TYPE`| Payload as seperate subtopic (_MQTT_PAYLOAD_TYPE='TOPIC') or as JSON (_MQTT_PAYLOAD_TYPE='JSON')
-| `_WS_RECONNECTS_BEFORE_ALERT`| Attempts to reconnect to webserver before publishing a alert on topic Maestro/Status
-| `_MCZip`| Stove IP Address. Default is 192.168.120.1
-| `_MCZport`| Stove websicker port. Default is 81
+| `MQTT_port`| Mqtt broker port, default 1883
+| `MQTT_authentication`| use authentication, True / False
+| `MQTT_user`| Mqtt User name
+| `MQTT_pass`| Mqtt password
+| `MQTT_TOPIC_SUB`| Mqtt topic for command messages here
+| `MQTT_TOPIC_PUB`| Information messages by daemon are published here
+| `MQTT_PAYLOAD_TYPE`| Payload as seperate subtopic (_MQTT_PAYLOAD_TYPE='TOPIC') or as JSON (_MQTT_PAYLOAD_TYPE='JSON')
+| `WS_RECONNECTS_BEFORE_ALERT`| Attempts to reconnect to webserver before publishing a alert on topic PUBmcz/Status
+| `MCZip`| Stove IP Address. Default is 192.168.120.1
+| `MCZport`| Stove websicker port. Default is 81
+
 
 ### Recieving information
 Data is polled from the stove every 15 seconds.
@@ -117,9 +119,7 @@ Make sure you can ping the device at 192.168.120.1 before proceeding.
 
 ## Docker Installation
 It is possible to run maestrogateway inside a docker container. It requires the installation of docker and docker-compose. 
-
-If you are using a raspberry pi you can use the scripts from gcgarner/IOTStack to make installation easy.
-https://github.com/gcgarner/IOTstack
+https://hub.docker.com/r/chibald/maestrogateway
 
 1. Update docker-compose.yml as needed. See example below:
 [Docker-compose](https://docs.docker.com/compose/install/) example:
@@ -146,7 +146,7 @@ services:
 
     restart: unless-stopped
 ```
-2. Run `docker-compose up --detach` to build and start pi-hole
+2. Run `docker-compose up --detach` to build and start maestrogateway
 
 ## Script Installation (RPI) 
 create a folder "maestro", in this folder run:
@@ -182,4 +182,4 @@ https://github.com/Anthony-55/maestro
 His version is made for Jeedom, a French HA system. The jeedom forum has got interesting topics about managing pellet stoves and heaters using Jeedom. ex.
 https://community.jeedom.com/t/mcz-maestro-et-jeedom/6159
 
-Also tharts and deSteini have contributed. If you like things changed, improved or added you're welcome to make a Pull Reqqust.
+Also tharts and deSteini have contributed. If you like things changed, improved or added you're welcome to make a Pull Request.
