@@ -39,15 +39,15 @@ MAESTRO_COMMANDS.append(MaestroCommand('DuctedFan1', 38, 'int'))# 0, 1, 2, 3 ,4,
 MAESTRO_COMMANDS.append(MaestroCommand('DuctedFan2', 39, 'int'))# 0, 1, 2, 3 ,4,  5 ,6
 MAESTRO_COMMANDS.append(MaestroCommand('Control_Mode', 40, 'onoff')) # 0 = Auto , 1 = Manual
 # Untested, proceed with caution
-MAESTRO_COMMANDS.append(MaestroCommand('Feeding_Screw', 34, '49')) # 49 as parameter to socket for feeding screw activiation
-MAESTRO_COMMANDS.append(MaestroCommand('Celsius_Fahrenheit', 49, 'int'))
-MAESTRO_COMMANDS.append(MaestroCommand('Sleep', 57, 'int'))
-MAESTRO_COMMANDS.append(MaestroCommand('Summer_Mode', 58, 'onoff'))
-MAESTRO_COMMANDS.append(MaestroCommand('Pellet_Sensor', 148, 'onoff'))
-MAESTRO_COMMANDS.append(MaestroCommand('Adaptive_Mode', 149, 'onoff'))
-MAESTRO_COMMANDS.append(MaestroCommand('AntiFreeze', 154, 'int'))
-MAESTRO_COMMANDS.append(MaestroCommand('Reset_Active', 2, '255'))
-MAESTRO_COMMANDS.append(MaestroCommand('Reset_Alarm', 1, '255'))
+#MAESTRO_COMMANDS.append(MaestroCommand('Feeding_Screw', 34, '49')) # 49 as parameter to socket for feeding screw activiation
+#MAESTRO_COMMANDS.append(MaestroCommand('Celsius_Fahrenheit', 49, 'int'))
+#MAESTRO_COMMANDS.append(MaestroCommand('Sleep', 57, 'int'))
+#MAESTRO_COMMANDS.append(MaestroCommand('Summer_Mode', 58, 'onoff'))
+#MAESTRO_COMMANDS.append(MaestroCommand('Pellet_Sensor', 148, 'onoff'))
+#MAESTRO_COMMANDS.append(MaestroCommand('Adaptive_Mode', 149, 'onoff'))
+#MAESTRO_COMMANDS.append(MaestroCommand('AntiFreeze', 154, 'int'))
+#MAESTRO_COMMANDS.append(MaestroCommand('Reset_Active', 2, '255'))
+#MAESTRO_COMMANDS.append(MaestroCommand('Reset_Alarm', 1, '255'))
 # Probably bit dangerous ;)
 #commands.append(MaestroCommand('Factory_Reset', 46, 'onoff'))
 
@@ -68,6 +68,12 @@ def maestrocommandvalue_to_websocket_string(maestrocommandval):
         write = "C|RecuperoInfo"
     else:
         write = "C|WriteParametri|"
+
+        if maestrocommandval.value == "ON":
+            maestrocommandval.value = 1
+        elif maestrocommandval.value == "OFF":
+            maestrocommandval.value = 0
+        
         writevalue = float(maestrocommandval.value)
         if maestrocommand.commandtype == 'temperature':
             writevalue = int(writevalue*2)

@@ -23,7 +23,7 @@ import paho.mqtt.client as mqtt
 import websocket
 
 from logging.handlers import RotatingFileHandler
-from messages import MaestroMessageType, process_infostring, get_maestro_info
+from messages import MaestroMessageType, process_infostring, get_maestro_info, get_maestro_infoname, MAESTRO_INFORMATION
 
 from _config_ import _MCZport
 from _config_ import _MCZip
@@ -34,6 +34,7 @@ from _config_ import _MQTT_TOPIC_PUB, _MQTT_TOPIC_SUB, _MQTT_PAYLOAD_TYPE
 from _config_ import _WS_RECONNECTS_BEFORE_ALERT
 from _config_ import _MQTT_port
 from _config_ import _MQTT_ip
+from _config_ import _VERSION
 
 from commands import MaestroCommand, get_maestro_command, maestrocommandvalue_to_websocket_string, MaestroCommandValue, MAESTRO_COMMANDS
 
@@ -58,7 +59,7 @@ class SetQueue(queue.Queue):
         for val in self.all_items:
             if val.command.name == item.command.name:
                 found = True
-                val.command.value = item.command.value
+                val.value = item.value
         if not found:
             queue.Queue._put(self, item)
             self.all_items.add(item)
@@ -109,29 +110,31 @@ def on_message_mqtt(client, userdata, message):
         if _MQTT_PAYLOAD_TYPE == 'TOPIC':
             topic = str(message.topic)
             command = topic[str(topic).rindex('/')+1:]
-            logger.info(f"Command topic received: {command}")
+            logger.info(f"Command topic received: {topic}")
             maestrocommand = get_maestro_command(command)
-            cmd_value = float(payload)
+            cmd_value = payload
         else:
             logger.info(f"MQTT: Message received: {payload}")
             res = json.loads(payload)
             maestrocommand = get_maestro_command(res["Command"])
-            cmd_value = float(res["Value"])
+            cmd_value = res["Value"]
         if maestrocommand.name == "Unknown":
-            logger.info(f"Unknown Maestro JSON Command Received. Ignoring. {payload}")
+            logger.info(f"Unknown Maestro Command Received. Ignoring. {payload}")
         elif maestrocommand.name == "Refresh":
             logger.info('Clearing the message cache')
             MaestroInfoMessageCache.clear()
         else:
+            logger.info('Queueing Command ' + maestrocommand.name + ' ' + str(payload))
             CommandQueue.put(MaestroCommandValue(maestrocommand, cmd_value))
     except Exception as e: # work on python 3.x
-            logger.error('Exception in on_message: '+ str(e))
+            logger.error('Exception in on_message_mqtt: '+ str(e))
 
 def recuperoinfo_enqueue():
     """Get Stove information every x seconds as long as there is a websocket connection"""
     threading.Timer(get_stove_info_interval, recuperoinfo_enqueue).start()
     if websocket_connected:
         CommandQueue.put(MaestroCommandValue(MaestroCommand('GetInfo', 0, 'GetInfo'), 0))
+        client.publish(_MQTT_TOPIC_PUB + 'state',  'ON',  1)    
 
 def send_connection_status_message(message):
     global old_connection_status
@@ -139,7 +142,7 @@ def send_connection_status_message(message):
         if _MQTT_PAYLOAD_TYPE == 'TOPIC':
             json_dictionary = json.loads(str(json.dumps(message)))
             for key in json_dictionary:
-                logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB+'/'+key) +
+                logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB + key) +
                         '", Message : ' + str(json_dictionary[key]))
                 client.publish(_MQTT_TOPIC_PUB+'/'+key, json_dictionary[key], 1)
         else:
@@ -163,9 +166,9 @@ def process_info_message(message):
         if _MQTT_PAYLOAD_TYPE == 'TOPIC':
             json_dictionary = json.loads(str(json.dumps(maestro_info_message_publish)))
             for key in json_dictionary:
-                logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB+'/'+key) +
+                logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB + key) +
                         '", Message : ' + str(json_dictionary[key]))
-                client.publish(_MQTT_TOPIC_PUB+'/'+key, json_dictionary[key], 1)
+                client.publish(_MQTT_TOPIC_PUB + key, json_dictionary[key], 1)
         else:
             client.publish(_MQTT_TOPIC_PUB, json.dumps(maestro_info_message_publish), 1)
 
@@ -215,11 +218,33 @@ def start_mqtt():
     client.connect(_MQTT_ip, _MQTT_port)
     client.loop_start()
     if _MQTT_PAYLOAD_TYPE == 'TOPIC':
-        logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '/#"')
-        client.subscribe(_MQTT_TOPIC_SUB+'/#', qos=1)
+        logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '#"')
+        client.subscribe(_MQTT_TOPIC_SUB+'#', qos=1)
+        publish_homeassistant_autodiscovery()
     else:
         logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '"')
         client.subscribe(_MQTT_TOPIC_SUB, qos=1)   
+
+def publish_homeassistant_autodiscovery():    
+    logger.info('Publish HA Auto Discovery Config ')    
+    client.publish(_MQTT_TOPIC_PUB + 'state',  'ON',  1)
+    # Connection to stove topic.
+    client.publish('homeassistant/sensor/' + _MQTT_TOPIC_PUB + 'status', json.dumps({"name": "status", "state_topic": _MQTT_TOPIC_PUB + "status", "availability_topic":_MQTT_TOPIC_PUB + 'state',  "device": {"identifiers":"3c715344d6884","name":"Maestro","sw_version":"maestrogateway v" + _VERSION, "model":"Pellet Stove", "manufacturer":"MZC"}  } ))
+    # Publish topics that have stat and command
+    for item in MAESTRO_INFORMATION:        
+        config_data = {"name": item.name, "state_topic": _MQTT_TOPIC_PUB + item.name, "availability_topic":_MQTT_TOPIC_PUB + 'state',  "device":{"identifiers":"3c715344d6884","name":"Maestro","sw_version":"maestrogateway v" + _VERSION, "model":"Pellet Stove", "manufacturer":"MZC"}  }        
+        maestrocommand = get_maestro_command(item.name)
+        homeassistanttype = 'sensor'        
+        if maestrocommand.name != "Unknown":
+            config_data['command_topic'] = _MQTT_TOPIC_SUB + item.name
+            #homeassistanttype = 'switch'
+        client.publish('homeassistant/' +homeassistanttype + '/' + _MQTT_TOPIC_PUB + item.name +  '/config',  json.dumps(config_data),  1)
+    # publish topics that have command only
+    for item in MAESTRO_COMMANDS:
+        maestroinfo = get_maestro_infoname(item.name)
+        if maestroinfo.name == "Unknown":
+            config_data = {"name": item.name, "command_topic": _MQTT_TOPIC_SUB + item.name, "availability_topic":_MQTT_TOPIC_PUB + 'state', "device":{"identifiers":"3c715344d6884","name":"Maestro","sw_version":"maestrogateway v" + _VERSION, "model":"Pellet Stove", "manufacturer":"MZC"} }        
+            client.publish('homeassistant/sensor/' + _MQTT_TOPIC_PUB + item.name +  '/config',  json.dumps(config_data),  1)
 
 def init_config():
     print('Reading config from envionment variables')
