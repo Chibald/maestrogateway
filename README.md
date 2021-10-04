@@ -36,7 +36,7 @@ Configure by setting varables in _config_.py when running in local python mode, 
 | `MQTT_PAYLOAD_TYPE`| Payload as seperate subtopic (_MQTT_PAYLOAD_TYPE='TOPIC') or as JSON (_MQTT_PAYLOAD_TYPE='JSON')
 | `WS_RECONNECTS_BEFORE_ALERT`| Attempts to reconnect to webserver before publishing a alert on topic PUBmcz/Status
 | `MCZip`| Stove IP Address. Default is 192.168.120.1
-| `MCZport`| Stove websicker port. Default is 81
+| `MCZport`| Stove websocket port. Default is 81
 
 
 ### Recieving information
@@ -137,7 +137,7 @@ services:
       MQTT_authentication: 'False'
       MQTT_user: ''
       MQTT_pass: ''
-      MQTT_TOPIC_SUB: 'SUBmcz'
+      MQTT_TOPIC_SUB: 'Maestro/Command/'
       MQTT_TOPIC_PUB: 'Maestro/'
       MQTT_PAYLOAD_TYPE: 'TOPIC'
       WS_RECONNECTS_BEFORE_ALERT: 5
