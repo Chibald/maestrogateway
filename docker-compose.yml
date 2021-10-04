@@ -10,8 +10,8 @@ services:
       MQTT_authentication: 'False'
       MQTT_user: ''
       MQTT_pass: ''
-      MQTT_TOPIC_SUB: 'SUBmcz'
-      MQTT_TOPIC_PUB: 'PUBmcz'
+      MQTT_TOPIC_SUB: 'Maestro/Command/'
+      MQTT_TOPIC_PUB: 'Maestro/'
       MQTT_PAYLOAD_TYPE: 'TOPIC'
       WS_RECONNECTS_BEFORE_ALERT: 5
       MCZip: '192.168.120.1'

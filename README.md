@@ -38,6 +38,7 @@ Configure by setting varables in _config_.py when running in local python mode, 
 | `MCZip`| Stove IP Address. Default is 192.168.120.1
 | `MCZport`| Stove websicker port. Default is 81
 
+
 ### Recieving information
 Data is polled from the stove every 15 seconds.
 
@@ -137,7 +138,7 @@ services:
       MQTT_user: ''
       MQTT_pass: ''
       MQTT_TOPIC_SUB: 'SUBmcz'
-      MQTT_TOPIC_PUB: 'PUBmcz'
+      MQTT_TOPIC_PUB: 'Maestro/'
       MQTT_PAYLOAD_TYPE: 'TOPIC'
       WS_RECONNECTS_BEFORE_ALERT: 5
       MCZip: '192.168.120.1'
