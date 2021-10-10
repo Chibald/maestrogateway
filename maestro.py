@@ -23,7 +23,7 @@ import paho.mqtt.client as mqtt
 import websocket
 
 from logging.handlers import RotatingFileHandler
-from messages import MaestroMessageType, process_infostring, get_maestro_info, get_maestro_infoname, MAESTRO_INFORMATION
+from messages import MaestroMessageType, process_infostring, get_maestro_info, get_maestro_infoname, MAESTRO_INFORMATION, get_maestro_stoveOnOrOff, MaestroInformation
 
 from _config_ import _MCZport
 from _config_ import _MCZip
@@ -164,11 +164,15 @@ def process_info_message(message):
 
     if len(maestro_info_message_publish) > 0:
         if _MQTT_PAYLOAD_TYPE == 'TOPIC':
-            json_dictionary = json.loads(str(json.dumps(maestro_info_message_publish)))
-            for key in json_dictionary:
-                logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB + key) +
-                        '", Message : ' + str(json_dictionary[key]))
-                client.publish(_MQTT_TOPIC_PUB + key, json_dictionary[key], 1)
+            logger.info(str(json.dumps(maestro_info_message_publish)))
+            for key in maestro_info_message_publish:
+                logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB + key) +'", Message : ' + str(maestro_info_message_publish[key]))
+                client.publish(_MQTT_TOPIC_PUB + key, maestro_info_message_publish[key], 1)
+                # Provide binary information about wheter the stove is on or off.                
+                if (key == "Stove_State"):
+                    powerstate = get_maestro_stoveOnOrOff(maestro_info_message_publish[key])
+                    logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB) +' POWER", Message : ' + str(powerstate))                    
+                    client.publish(_MQTT_TOPIC_PUB + "Power", powerstate, 1)                    
         else:
             client.publish(_MQTT_TOPIC_PUB, json.dumps(maestro_info_message_publish), 1)
 
@@ -220,31 +224,26 @@ def start_mqtt():
     if _MQTT_PAYLOAD_TYPE == 'TOPIC':
         logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '#"')
         client.subscribe(_MQTT_TOPIC_SUB+'#', qos=1)
-        publish_homeassistant_autodiscovery()
+        publish_availabletopics()
     else:
         logger.info('MQTT: Subscribed to topic "' + str(_MQTT_TOPIC_SUB) + '"')
         client.subscribe(_MQTT_TOPIC_SUB, qos=1)   
 
-def publish_homeassistant_autodiscovery():    
-    logger.info('Publish HA Auto Discovery Config ')    
-    client.publish(_MQTT_TOPIC_PUB + 'state',  'ON',  1)
-    # Connection to stove topic.
-    client.publish('homeassistant/sensor/' + _MQTT_TOPIC_PUB + 'status', json.dumps({"name": "status", "state_topic": _MQTT_TOPIC_PUB + "status", "availability_topic":_MQTT_TOPIC_PUB + 'state',  "device": {"identifiers":"3c715344d6884","name":"Maestro","sw_version":"maestrogateway v" + _VERSION, "model":"Pellet Stove", "manufacturer":"MZC"}  } ))
+def publish_availabletopics():  
+    logger.info(_MQTT_TOPIC_PUB + 'state')  
     # Publish topics that have stat and command
-    for item in MAESTRO_INFORMATION:        
-        config_data = {"name": item.name, "state_topic": _MQTT_TOPIC_PUB + item.name, "availability_topic":_MQTT_TOPIC_PUB + 'state',  "device":{"identifiers":"3c715344d6884","name":"Maestro","sw_version":"maestrogateway v" + _VERSION, "model":"Pellet Stove", "manufacturer":"MZC"}  }        
-        maestrocommand = get_maestro_command(item.name)
-        homeassistanttype = 'sensor'        
+    for item in MAESTRO_INFORMATION:
+        logger.info(_MQTT_TOPIC_PUB + item.name)        
+        maestrocommand = get_maestro_command(item.name)        
         if maestrocommand.name != "Unknown":
-            config_data['command_topic'] = _MQTT_TOPIC_SUB + item.name
-            #homeassistanttype = 'switch'
-        client.publish('homeassistant/' +homeassistanttype + '/' + _MQTT_TOPIC_PUB + item.name +  '/config',  json.dumps(config_data),  1)
+            logger.info(_MQTT_TOPIC_SUB + item.name)  
+
     # publish topics that have command only
     for item in MAESTRO_COMMANDS:
+        homeassistanttype = 'sensor'   
         maestroinfo = get_maestro_infoname(item.name)
         if maestroinfo.name == "Unknown":
-            config_data = {"name": item.name, "command_topic": _MQTT_TOPIC_SUB + item.name, "availability_topic":_MQTT_TOPIC_PUB + 'state', "device":{"identifiers":"3c715344d6884","name":"Maestro","sw_version":"maestrogateway v" + _VERSION, "model":"Pellet Stove", "manufacturer":"MZC"} }        
-            client.publish('homeassistant/sensor/' + _MQTT_TOPIC_PUB + item.name +  '/config',  json.dumps(config_data),  1)
+            logger.info(_MQTT_TOPIC_SUB + item.name) 
 
 def init_config():
     print('Reading config from envionment variables')
@@ -283,7 +282,7 @@ def init_config():
         _MCZport = os.getenv('MCZport')
     
 if __name__ == "__main__":
-    init_config()
+    init_config()        
     recuperoinfo_enqueue()
     socket_reconnect_count = 0
     start_mqtt()
@@ -297,7 +296,7 @@ if __name__ == "__main__":
                                     on_close=on_close)
         ws.on_open = on_open
 
-        ws.run_forever(ping_interval=5, ping_timeout=2)
+        ws.run_forever(ping_interval=5, ping_timeout=2, suppress_origin=True)
         time.sleep(1)
         socket_reconnect_count = socket_reconnect_count + 1
         logger.info("Socket Reconnection Count: " + str(socket_reconnect_count))

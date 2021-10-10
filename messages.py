@@ -18,12 +18,68 @@ class MaestroMessageType(Enum):
     SoftwareVersion = "0E"
     Ping = "PING"
 
+
+class MaestroStoveState(object):        
+    """Maestro Stove State"""
+    def __init__(self, stateid, description, onoroff):
+        self.stateid = stateid # Position in recuperoinfo-frame
+        self.description = description # Maestro command ID to be sent via websocket
+        self.onoroff = onoroff # Message type
+
 class MaestroInformation(object):
     """Maestro Information. Consists of a readable name., a websocket ID and a command type."""
     def __init__(self, frameid, name, messagetype):
         self.frameid = frameid # Position in recuperoinfo-frame
         self.name = name # Maestro command ID to be sent via websocket
         self.messagetype = messagetype # Message type
+
+MAESTRO_STOVESTATE = []
+MAESTRO_STOVESTATE.append(MaestroStoveState(0,"Off", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(1,"Checking hot or cold", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(2,"Cleaning cold", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(3,"Loading Pellets Cold", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(4,"Start 1 Cold", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(5,"Start 2 Cold", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(6,"Cleaning Hot", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(7,"Loading Pellets Hot", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(8,"Start 1 Hot", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(9,"Start 2 Hot", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(10,"Stabilising", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(11,"Power 1", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(12,"Power 2", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(13,"Power 3", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(14,"Power 4", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(15,"Power 5", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(30,"Diagnostics", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(31,"On", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(40,"Extinguish", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(41,"Cooling", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(42,"Cleaning Low", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(43,"Cleaning High", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(44,"UNLOCKING SCREW", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(45,"Auto Eco", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(46,"Standby", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(48,"Diagnostics", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(49,"Loading Auger", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(50,"Error A01 - Ignition failed", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(51,"Error A02 - No flame", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(52,"Error A03 - Tank overheating", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(53,"Error A04 - Flue gas temperature too high", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(54,"Error A05 - Duct obstruction - Wind", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(55,"Error A06 - Bad printing", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(56,"Error A09 - SMOKE PROBE", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(57,"Error A11 - GEAR MOTOR", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(58,"Error A13 - MOTHERBOARD TEMPERATURE", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(59,"Error A14 - DEFECT ACTIVE", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(60,"Error A18 - WATER TEMP ALARM", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(61,"Error A19 - FAULTY WATER PROBE", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(62,"Error A20 - FAILURE OF AUXILIARY PROBE", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(63,"Error A21 - PRESSURE SWITCH ALARM", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(64,"Error A22 - ROOM PROBE FAULT", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(65,"Error A23 - BRAZIL CLOSING FAULT", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(66,"Error A12 - MOTOR REDUCER CONTROLLER FAILURE", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(67,"Error A17 - ENDLESS SCREW JAM", 0))
+MAESTRO_STOVESTATE.append(MaestroStoveState(69,"WAITING FOR SECURITY ALARMS", 0))
 
 MAESTRO_INFORMATION = []
 MAESTRO_INFORMATION.append(MaestroInformation(0, "Messagetype", 'MaestoMessageType'))
@@ -87,6 +143,8 @@ MAESTRO_INFORMATION.append(MaestroInformation(57, "SetBoiler", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(58, "SetHealth", 'int'))  # != 255 == Hydro version
 MAESTRO_INFORMATION.append(MaestroInformation(59, "Return_Temperature", 'temperature'))
 MAESTRO_INFORMATION.append(MaestroInformation(60, "AntiFreeze", 'onoff'))
+# These items are not really in the information frame but they are transfromed to match commands.
+MAESTRO_INFORMATION.append(MaestroInformation(-1, "Power", 'onoff'))
 
 def get_maestro_info(frameid):
     """Return Maestro info from the commandlist by name"""
@@ -131,3 +189,19 @@ def seconds_to_hours_minutes(seconds):
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
     return '{:d}:{:02d}:{:02d}'.format(h, m, s)
+
+def get_maestro_stoveOnOrOff(stateid):
+    i = 0
+    while i < len(MAESTRO_STOVESTATE):
+        if stateid == MAESTRO_STOVESTATE[i].stateid:
+            return MAESTRO_STOVESTATE[i].onoroff
+        i += 1
+    return 0
+
+def get_maestro_stovestatedescription(stateid):
+    i = 0
+    while i < len(MAESTRO_STOVESTATE):
+        if stateid == MAESTRO_STOVESTATE[i].stateid:
+            return MAESTRO_INFORMATION[i].description
+        i += 1
+    return 'unknown'

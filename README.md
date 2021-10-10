@@ -59,6 +59,88 @@ If you use payload type Topic, all the parameters will be published to a separat
 Maestro/Status/Ambient_Temperature, 19.0
 ```
 
+| Topic | Description |
+| ----------------------- | ----------- |
+| Maestro/state |
+| Maestro/Stove_State |
+| Maestro/Fan_State |
+| Maestro/Command/Fan_State |
+| Maestro/DuctedFan1 |
+| Maestro/Command/DuctedFan1 |
+| Maestro/DuctedFan2 |
+| Maestro/Command/DuctedFan2 |
+| Maestro/Fume_Temperature |
+| Maestro/Ambient_Temperature |
+| Maestro/Puffer_Temperature |
+| Maestro/Boiler_Temperature |
+| Maestro/NTC3_Temperature |
+| Maestro/Candle_Condition |
+| Maestro/ACTIVE_Set |
+| Maestro/RPM_Fam_Fume |
+| Maestro/RPM_WormWheel_Set |
+| Maestro/RPM_WormWheel_Live |
+| Maestro/3WayValve |
+| Maestro/Pump_PWM |
+| Maestro/Brazier |
+| Maestro/Profile |
+| Maestro/Modbus_Address |
+| Maestro/Active_Mode |
+| Maestro/Command/Active_Mode |
+| Maestro/Active_Live |
+| Maestro/Control_Mode |
+| Maestro/Command/Control_Mode |
+| Maestro/Eco_Mode |
+| Maestro/Command/Eco_Mode |
+| Maestro/Silent_Mode |
+| Maestro/Command/Silent_Mode |
+| Maestro/Chronostat |
+| Maestro/Command/Chronostat |
+| Maestro/Temperature_Setpoint |
+| Maestro/Command/Temperature_Setpoint |
+| Maestro/Boiler_Setpoint |
+| Maestro/Command/Boiler_Setpoint |
+| Maestro/Temperature_Motherboard |
+| Maestro/Power_Level |
+| Maestro/Command/Power_Level |
+| Maestro/FirmwareVersion |
+| Maestro/DatabaseID |
+| Maestro/Date_Time_Hours |
+| Maestro/Date_Time_Minutes |
+| Maestro/Date_Day_Of_Month |
+| Maestro/Date_Month |
+| Maestro/Date_Year |
+| Maestro/Total_Operating_Hours |
+| Maestro/Hours_Of_Operation_In_Power1 |
+| Maestro/Hours_Of_Operation_In_Power2 |
+| Maestro/Hours_Of_Operation_In_Power3 |
+| Maestro/Hours_Of_Operation_In_Power4 |
+| Maestro/Hours_Of_Operation_In_Power5 |
+| Maestro/Hours_To_Service |
+| Maestro/Minutes_To_Switch_Off |
+| Maestro/Number_Of_Ignitions |
+| Maestro/Active_Temperature |
+| Maestro/Celcius_Or_Fahrenheit |
+| Maestro/Sound_Effects |
+| Maestro/Command/Sound_Effects |
+| Maestro/Sound_Effects_State |
+| Maestro/Sleep |
+| Maestro/Mode |
+| Maestro/WifiSondeTemperature1 |
+| Maestro/WifiSondeTemperature2 |
+| Maestro/WifiSondeTemperature3 |
+| Maestro/SetPuffer |
+| Maestro/SetBoiler |
+| Maestro/SetHealth |
+| Maestro/Return_Temperature |
+| Maestro/AntiFreeze |
+| Maestro/Power |
+| Maestro/Command/Power |
+| Maestro/Command/Refresh |
+| Maestro/Command/GetInfo |
+| Maestro/Command/Chronostat_T1 |
+| Maestro/Command/Chronostat_T2 |
+| Maestro/Command/Chronostat_T3 |
+
 ### Sending commands
 Publish Json command on the command Mqtt - topic to issue commands.
 
