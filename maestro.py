@@ -110,16 +110,16 @@ def on_message_mqtt(client, userdata, message):
         if _MQTT_PAYLOAD_TYPE == 'TOPIC':
             topic = str(message.topic)
             command = topic[str(topic).rindex('/')+1:]
-            logger.info(f"Command topic received: {topic}")
+            logger.info("Command topic received: " + topic)
             maestrocommand = get_maestro_command(command)
             cmd_value = payload
         else:
-            logger.info(f"MQTT: Message received: {payload}")
+            logger.info("MQTT: Message received: "+ payload)
             res = json.loads(payload)
             maestrocommand = get_maestro_command(res["Command"])
             cmd_value = res["Value"]
         if maestrocommand.name == "Unknown":
-            logger.info(f"Unknown Maestro Command Received. Ignoring. {payload}")
+            logger.info("Unknown Maestro Command Received. Ignoring. "+ payload)
         elif maestrocommand.name == "Refresh":
             logger.info('Clearing the message cache')
             MaestroInfoMessageCache.clear()
