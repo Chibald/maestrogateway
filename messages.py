@@ -50,7 +50,7 @@ MAESTRO_STOVESTATE.append(MaestroStoveState(12,"Power 2", 1))
 MAESTRO_STOVESTATE.append(MaestroStoveState(13,"Power 3", 1))
 MAESTRO_STOVESTATE.append(MaestroStoveState(14,"Power 4", 1))
 MAESTRO_STOVESTATE.append(MaestroStoveState(15,"Power 5", 1))
-MAESTRO_STOVESTATE.append(MaestroStoveState(30,"Diagnostics", 1))
+MAESTRO_STOVESTATE.append(MaestroStoveState(30,"Diagnostics", 0))
 MAESTRO_STOVESTATE.append(MaestroStoveState(31,"On", 1))
 MAESTRO_STOVESTATE.append(MaestroStoveState(40,"Extinguish", 1))
 MAESTRO_STOVESTATE.append(MaestroStoveState(41,"Cooling", 1))
@@ -145,6 +145,7 @@ MAESTRO_INFORMATION.append(MaestroInformation(59, "Return_Temperature", 'tempera
 MAESTRO_INFORMATION.append(MaestroInformation(60, "AntiFreeze", 'onoff'))
 # These items are not really in the information frame but they are transfromed to match commands.
 MAESTRO_INFORMATION.append(MaestroInformation(-1, "Power", 'onoff'))
+MAESTRO_INFORMATION.append(MaestroInformation(-2, "Diagnostics", 'onoff'))
 
 def get_maestro_info(frameid):
     """Return Maestro info from the commandlist by name"""
@@ -183,6 +184,11 @@ def process_infostring(message):
                 res[info.name] = "CLR"
         else:
             res[info.name] = int(message.split("|")[i], 16)
+        
+        if info.name == "Stove_State":
+            res["Power"] = get_maestro_stoveOnOrOff(res[info.name])
+            res["Diagnostics"] = get_maestro_indiagnosticsmode(res[info.name])
+        
     return res
 
 def seconds_to_hours_minutes(seconds):
@@ -196,6 +202,11 @@ def get_maestro_stoveOnOrOff(stateid):
         if stateid == MAESTRO_STOVESTATE[i].stateid:
             return MAESTRO_STOVESTATE[i].onoroff
         i += 1
+    return 0
+
+def get_maestro_indiagnosticsmode(stateid):
+    if stateid == 30:
+        return 1
     return 0
 
 def get_maestro_stovestatedescription(stateid):
