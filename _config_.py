@@ -13,4 +13,4 @@ _MQTT_PAYLOAD_TYPE = 'TOPIC'            # Payload as seperate subtopic (_MQTT_PA
 _WS_RECONNECTS_BEFORE_ALERT = 5         # Attempts to reconnect to webserver before publishing a alert on topic Maestro/Status
 _MCZip ='192.168.120.1'				    # Stove IP Address. This probably is always this address.
 _MCZport = '81'						    # Websocket Port
-_VERSION = '1.01'					    # Version
+_VERSION = '1.03'					    # Version

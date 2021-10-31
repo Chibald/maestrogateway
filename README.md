@@ -19,6 +19,8 @@ https://www.mcz.it/en/maestro-technology/
 ## Usage
 This script returns the websocket data and will publish it on MQTT topics which you can use in your home automation software. You can use this information to display the state of all parameters from the stove. Also all basic commands that you can send using the official MZC app are available on another MQTT topic.
 
+After version 1.03 it's also possible to send diagnostics commands. For these commands you first have to put the stove in diagnostics mode. You can only put the stove in diagnostic mode when the stove is powered off. Diagnostic mode enables you to control some stove parameters that are normally not available. A use case is to control the 3 walve valve / water pump to get heat from a boiler. See commands.py for command list.
+
 It can be installed locally or using docker, get the latest build from https://hub.docker.com/r/chibald/maestrogateway
 
 ### Configuration
@@ -46,15 +48,17 @@ Data is polled from the stove every 15 seconds.
 If you use the Json payload type all the parameters wille be published to one topic using a json object:
 
 ```
-{ "Stove_State": 0, "Fan_State": 1, "DuctedFan1": 0.0, "DuctedFan2": 0.0, "Fume_Temperature": 22.5, "Ambient_Temperature": 19.5, "Puffer_Temperature": 127.5, "Boiler_Temperature": 51.0, "NTC3_Temperature": 127.5, "Candle_Condition": 0, "ACTIVE_Set": 150, "RPM_Fam_Fume": 0, "RPM_WormWheel_Set": 0, "RPM_WormWheel_Live": 0, "3WayValve": "Risc", "Pump_PWM": 0, "Brazier": "OK", "Profile": 1, "Modbus_Address": 41, "Active_Mode": 1, "Active_Live": 99, "Control_Mode": 1, "ECO_Mode": 1, "Silent_Mode": 0, "Chrono_Mode": 1 
+{"Stove_State": 11, "Power": 1, "Diagnostics": 0, "Fan_State": 1, "DuctedFan1": 0, "DuctedFan2": 0, "Fume_Temperature": 155, "Ambient_Temperature": 23.5, "Puffer_Temperature": 127.5, "Boiler_Temperature": 62.5, "NTC3_Temperature": 127.5, "Candle_Condition": 0, "ACTIVE_Set": 156, "RPM_Fam_Fume": 708, "RPM_WormWheel_Set": 150, "RPM_WormWheel_Live": 300, "3WayValve": "Risc", "Pump_PWM": 100, "Brazier": "OK", "Profile": 0, "Modbus_Address": 11, "Active_Mode": 1, "Active_Live": 157, "Control_Mode": 1, "Eco_Mode": 0, "Silent_Mode": 1, "Chronostat": 0, "Temperature_Setpoint": 23.5, "Boiler_Setpoint": 80.0, "Temperature_Motherboard": 37.5, "Power_Level": 11, "FirmwareVersion": 68107, "DatabaseID": 28, "Date_Time_Hours": 14, "Date_Time_Minutes": 39, "Date_Day_Of_Month": 31, "Date_Month": 10, "Date_Year": 2021, "Total_Operating_Hours": "307:00:03", "Hours_Of_Operation_In_Power1": "194:18:37", "Hours_Of_Operation_In_Power2": "0:32:50", "Hours_Of_Operation_In_Power3": "0:34:39", "Hours_Of_Operation_In_Power4": "0:34:45", "Hours_Of_Operation_In_Power5": "22:31:17", "Hours_To_Service": 1692, "Minutes_To_Switch_Off": 212, "Number_Of_Ignitions": 170, "Active_Temperature": 0, "Celcius_Or_Fahrenheit": 0, "Sound_Effects": 0, "Sound_Effects_State": 0, "Sleep": 0, "Mode": 0, "WifiSondeTemperature1": 255, "WifiSondeTemperature2": 255, "WifiSondeTemperature3": 255, "Unknown": 255, "SetPuffer": 130, "SetBoiler": 100, "SetHealth": 255, "Return_Temperature": 127.5, "AntiFreeze": 0}
 .....
+
 ```
-the script will check if value has changed, so next messages are filtered for changes vakues only
+the script will check if value has changed to prevent message flooding, so next messages are filtered for changes values only
 
 for example:
 ```
 {"Ambient_Temperature": 19.0}
 ```
+
 #### Payload type topic
 If you use payload type Topic, all the parameters will be published to a separate topic under the `MQTT_TOPIC_PUB` topic for example
 ```
@@ -63,6 +67,12 @@ Maestro/Status/Ambient_Temperature, 19.0
 
 | Topic | Description |
 | ----------------------- | ----------- |
+| Maestro/Power | Current power state (on / off)
+| Maestro/Command/Power | Turn stove on or off 
+| Maestro/Diagnostics | Current diagnostics state
+| Maestro/Command/Diagnostics | Set stove in diagnostics mode. Can only be set to diagnostics mode when stove is powered off.
+| Maestro/Command/Refresh | Clear the maestrogateway's message cache
+| Maestro/Command/GetInfo | Get stove info immediately (instead of waiting till next cycle)
 | Maestro/state |
 | Maestro/Stove_State |
 | Maestro/Fan_State |
@@ -82,7 +92,9 @@ Maestro/Status/Ambient_Temperature, 19.0
 | Maestro/RPM_WormWheel_Set |
 | Maestro/RPM_WormWheel_Live |
 | Maestro/3WayValve |
-| Maestro/Pump_PWM |
+| Maestro/Command/3WayValve | 
+| Maestro/Pump_PWM | current pumping speed (percentage)
+| Maestro/Command/Pump_PWM | Turn on the water pump. This only works when stove is in diagnostics mode
 | Maestro/Brazier |
 | Maestro/Profile |
 | Maestro/Modbus_Address |
@@ -124,7 +136,6 @@ Maestro/Status/Ambient_Temperature, 19.0
 | Maestro/Celcius_Or_Fahrenheit |
 | Maestro/Sound_Effects |
 | Maestro/Command/Sound_Effects |
-| Maestro/Sound_Effects_State |
 | Maestro/Sleep |
 | Maestro/Mode |
 | Maestro/WifiSondeTemperature1 |
@@ -135,10 +146,6 @@ Maestro/Status/Ambient_Temperature, 19.0
 | Maestro/SetHealth |
 | Maestro/Return_Temperature |
 | Maestro/AntiFreeze |
-| Maestro/Power |
-| Maestro/Command/Power |
-| Maestro/Command/Refresh |
-| Maestro/Command/GetInfo |
 | Maestro/Command/Chronostat_T1 |
 | Maestro/Command/Chronostat_T2 |
 | Maestro/Command/Chronostat_T3 |
@@ -166,17 +173,17 @@ to set temperature to 20.5 degrees:
 #### payload type Topic
 to turn on the stove:
 ```
-Maestro/Set/Power, 1
+Maestro/Command/Power, 1
 ```
 
 to turn off the stove:
 ```
-Maestro/Set/Power, 0
+Maestro/Command/Power, 0
 ```
 
 to set temperature to 20.5 degrees:
 ```
-Maestro/Set/Power/Temperature_Setpoint, 20.5
+Maestro/Command/Temperature_Setpoint, 20.5
 ```
 
 ## Hardware Prerequisities
