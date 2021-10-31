@@ -65,6 +65,12 @@ Maestro/Status/Ambient_Temperature, 19.0
 
 | Topic | Description |
 | ----------------------- | ----------- |
+| Maestro/Power | Current power state (on / off)
+| Maestro/Command/Power | Turn stove on or off 
+| Maestro/Diagnostics | Current diagnostics state
+| Maestro/Command/Diagnostics | Set stove in diagnostics mode. Can only be set to diagnostics mode when stove is powered off.
+| Maestro/Command/Refresh | Clear the maestrogateway's message cache
+| Maestro/Command/GetInfo | Get stove info immediately (instead of waiting till next cycle)
 | Maestro/state |
 | Maestro/Stove_State |
 | Maestro/Fan_State |
@@ -84,8 +90,9 @@ Maestro/Status/Ambient_Temperature, 19.0
 | Maestro/RPM_WormWheel_Set |
 | Maestro/RPM_WormWheel_Live |
 | Maestro/3WayValve |
-| Maestro/Pump_PWM |
-| Maestro/Command/Pump_PWM | Turn on the water pump. This only works when stive is in diagniostics mode
+| Maestro/Command/3WayValve | 
+| Maestro/Pump_PWM | current pumping speed (percentage)
+| Maestro/Command/Pump_PWM | Turn on the water pump. This only works when stove is in diagnostics mode
 | Maestro/Brazier |
 | Maestro/Profile |
 | Maestro/Modbus_Address |
@@ -127,7 +134,6 @@ Maestro/Status/Ambient_Temperature, 19.0
 | Maestro/Celcius_Or_Fahrenheit |
 | Maestro/Sound_Effects |
 | Maestro/Command/Sound_Effects |
-| Maestro/Sound_Effects_State |
 | Maestro/Sleep |
 | Maestro/Mode |
 | Maestro/WifiSondeTemperature1 |
@@ -138,12 +144,6 @@ Maestro/Status/Ambient_Temperature, 19.0
 | Maestro/SetHealth |
 | Maestro/Return_Temperature |
 | Maestro/AntiFreeze |
-| Maestro/Power |
-| Maestro/Command/Power |
-| Maestro/Diagnostics |
-| Maestro/Command/Diagnostics | Set stove in diagnostics mode. Can only be set to diagnostics mode when stove is off.
-| Maestro/Command/Refresh |
-| Maestro/Command/GetInfo |
 | Maestro/Command/Chronostat_T1 |
 | Maestro/Command/Chronostat_T2 |
 | Maestro/Command/Chronostat_T3 |
