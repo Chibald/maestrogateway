@@ -205,7 +205,7 @@ def get_maestro_stoveOnOrOff(stateid):
     return 0
 
 def get_maestro_indiagnosticsmode(stateid):
-    if stateid == 30:
+    if stateid == 30 or stateid == 48:
         return 1
     return 0
 
