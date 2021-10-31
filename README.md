@@ -19,6 +19,8 @@ https://www.mcz.it/en/maestro-technology/
 ## Usage
 This script returns the websocket data and will publish it on MQTT topics which you can use in your home automation software. You can use this information to display the state of all parameters from the stove. Also all basic commands that you can send using the official MZC app are available on another MQTT topic.
 
+After version 1.03 it's also possible to send diagnostics commands. For these commands you first have to put the stove in diagnostics mode. You can only put the stove in diagnostic mode when the stove is powered off. Diagnostic mode enables you to control some stove parameters that are normally not available. A use case is to control the 3 walve valve / water pump to get heat from a boiler. See commands.py for command list.
+
 It can be installed locally or using docker, get the latest build from https://hub.docker.com/r/chibald/maestrogateway
 
 ### Configuration
