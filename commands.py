@@ -38,6 +38,7 @@ MAESTRO_COMMANDS.append(MaestroCommand('Fan_State', 37, 'int'))# 0, 1, 2, 3 ,4, 
 MAESTRO_COMMANDS.append(MaestroCommand('DuctedFan1', 38, 'int'))# 0, 1, 2, 3 ,4,  5 ,6
 MAESTRO_COMMANDS.append(MaestroCommand('DuctedFan2', 39, 'int'))# 0, 1, 2, 3 ,4,  5 ,6
 MAESTRO_COMMANDS.append(MaestroCommand('Control_Mode', 40, 'onoff')) # 0 = Auto , 1 = Manual
+MAESTRO_COMMANDS.append(MaestroCommand('Profile', 149, 'int'))
 # Untested, proceed with caution
 #MAESTRO_COMMANDS.append(MaestroCommand('Feeding_Screw', 34, '49')) # 49 as parameter to socket for feeding screw activiation
 #MAESTRO_COMMANDS.append(MaestroCommand('Celsius_Fahrenheit', 49, 'int'))
