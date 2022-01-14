@@ -23,7 +23,7 @@ import paho.mqtt.client as mqtt
 import websocket
 
 from logging.handlers import RotatingFileHandler
-from messages import MaestroMessageType, process_infostring, get_maestro_info, get_maestro_infoname, MAESTRO_INFORMATION, get_maestro_stoveOnOrOff, MaestroInformation
+from messages import MaestroMessageType, process_infostring, get_maestro_info, get_maestro_infoname, MAESTRO_INFORMATION, MaestroInformation
 
 from _config_ import _MCZport
 from _config_ import _MCZip
@@ -133,7 +133,7 @@ def recuperoinfo_enqueue():
     """Get Stove information every x seconds as long as there is a websocket connection"""
     threading.Timer(get_stove_info_interval, recuperoinfo_enqueue).start()
     if websocket_connected:
-        CommandQueue.put(MaestroCommandValue(MaestroCommand('GetInfo', 0, 'GetInfo'), 0))
+        CommandQueue.put(MaestroCommandValue(MaestroCommand('GetInfo', 0, 'GetInfo', 'GetInfo'), 0))
         client.publish(_MQTT_TOPIC_PUB + 'state',  'ON',  1)    
 
 def send_connection_status_message(message):
@@ -168,11 +168,6 @@ def process_info_message(message):
             for key in maestro_info_message_publish:
                 logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB + key) +'", Message : ' + str(maestro_info_message_publish[key]))
                 client.publish(_MQTT_TOPIC_PUB + key, maestro_info_message_publish[key], 1)
-                # Provide binary information about wheter the stove is on or off.                
-                if (key == "Stove_State"):
-                    powerstate = get_maestro_stoveOnOrOff(maestro_info_message_publish[key])
-                    logger.info('MQTT: publish to Topic "' + str(_MQTT_TOPIC_PUB) +' POWER", Message : ' + str(powerstate))                    
-                    client.publish(_MQTT_TOPIC_PUB + "Power", powerstate, 1)                    
         else:
             client.publish(_MQTT_TOPIC_PUB, json.dumps(maestro_info_message_publish), 1)
 

@@ -6,10 +6,11 @@ These are the supported commands to be set via websocket
 
 class MaestroCommand(object):
     """Maestro Command. Consists of a readable name., a websocket ID and a command type."""
-    def __init__(self, name, id, commandtype):
+    def __init__(self, name, id, commandtype, commandcategory):
         self.name = name # Name in Json Command
         self.maestroid = id # Maestro command ID to be sent via websocket
         self.commandtype = commandtype # Command type
+        self.commandcategory = commandcategory # Command type
 
 class MaestroCommandValue(object):
     """Keyvaluepair: Maestrocammand and value"""
@@ -19,9 +20,8 @@ class MaestroCommandValue(object):
 
 MAESTRO_COMMANDS = []
 # Daemon Control Messages
-MAESTRO_COMMANDS.append(MaestroCommand('Refresh', 0, 'Refresh'))
-MAESTRO_COMMANDS.append(MaestroCommand('GetInfo', 0, 'GetInfo'))
-# Maestro Control Messages
+MAESTRO_COMMANDS.append(MaestroCommand('Refresh', 0, 'Refresh', 'Daemon'))
+MAESTRO_COMMANDS.append(MaestroCommand('GetInfo', 0, 'GetInfo', 'GetInfo'))
 MAESTRO_COMMANDS.append(MaestroCommand('Temperature_Setpoint', 42, 'temperature'))
 MAESTRO_COMMANDS.append(MaestroCommand('Boiler_Setpoint', 51, 'temperature'))
 MAESTRO_COMMANDS.append(MaestroCommand('Chronostat', 1111, 'onoff'))
@@ -40,17 +40,29 @@ MAESTRO_COMMANDS.append(MaestroCommand('DuctedFan2', 39, 'int'))# 0, 1, 2, 3 ,4,
 MAESTRO_COMMANDS.append(MaestroCommand('Control_Mode', 40, 'onoff')) # 0 = Auto , 1 = Manual
 MAESTRO_COMMANDS.append(MaestroCommand('Profile', 149, 'int'))
 # Untested, proceed with caution
-#MAESTRO_COMMANDS.append(MaestroCommand('Feeding_Screw', 34, '49')) # 49 as parameter to socket for feeding screw activiation
-#MAESTRO_COMMANDS.append(MaestroCommand('Celsius_Fahrenheit', 49, 'int'))
-#MAESTRO_COMMANDS.append(MaestroCommand('Sleep', 57, 'int'))
-#MAESTRO_COMMANDS.append(MaestroCommand('Summer_Mode', 58, 'onoff'))
-#MAESTRO_COMMANDS.append(MaestroCommand('Pellet_Sensor', 148, 'onoff'))
-#MAESTRO_COMMANDS.append(MaestroCommand('Adaptive_Mode', 149, 'onoff'))
-#MAESTRO_COMMANDS.append(MaestroCommand('AntiFreeze', 154, 'int'))
-#MAESTRO_COMMANDS.append(MaestroCommand('Reset_Active', 2, '255'))
-#MAESTRO_COMMANDS.append(MaestroCommand('Reset_Alarm', 1, '255'))
+MAESTRO_COMMANDS.append(MaestroCommand('Feeding_Screw', 34, '49', 'Basic')) # 49 as parameter to socket for feeding screw activiation
+MAESTRO_COMMANDS.append(MaestroCommand('Celsius_Fahrenheit', 49, 'int', 'Basic'))
+MAESTRO_COMMANDS.append(MaestroCommand('Sleep', 57, 'int', 'Basic'))
+MAESTRO_COMMANDS.append(MaestroCommand('Summer_Mode', 58, 'onoff', 'Basic'))
+MAESTRO_COMMANDS.append(MaestroCommand('Pellet_Sensor', 148, 'onoff', 'Basic'))
+MAESTRO_COMMANDS.append(MaestroCommand('Adaptive_Mode', 149, 'onoff', 'Basic'))
+MAESTRO_COMMANDS.append(MaestroCommand('AntiFreeze', 154, 'int', 'Basic'))
+MAESTRO_COMMANDS.append(MaestroCommand('Reset_Active', 2, '255', 'Basic'))
+MAESTRO_COMMANDS.append(MaestroCommand('Reset_Alarm', 1, '255', 'Basic'))
 # Probably bit dangerous ;)
-#commands.append(MaestroCommand('Factory_Reset', 46, 'onoff'))
+#commands.append(MaestroCommand('Factory_Reset', 46, 'onoff', 'Basic'))
+
+# Diagnostics commands
+MAESTRO_COMMANDS.append(MaestroCommand('Diagnostics', 100, 'onoff', 'Diagnostics'))
+MAESTRO_COMMANDS.append(MaestroCommand('RPM_Fam_Fume', 1, 'int', 'Diagnostics'))
+MAESTRO_COMMANDS.append(MaestroCommand('RPM_WormWheel', 2, 'int', 'Diagnostics'))
+MAESTRO_COMMANDS.append(MaestroCommand('Active', 3, 'int', 'Diagnostics'))
+MAESTRO_COMMANDS.append(MaestroCommand('Ignitor', 4, 'onoff', 'Diagnostics'))
+MAESTRO_COMMANDS.append(MaestroCommand('FrontFan', 5, 'percentage', 'Diagnostics'))
+MAESTRO_COMMANDS.append(MaestroCommand('DuctedFan1', 6, 'percentage', 'Diagnostics'))
+MAESTRO_COMMANDS.append(MaestroCommand('DuctedFan2', 7, 'percentage', 'Diagnostics'))
+MAESTRO_COMMANDS.append(MaestroCommand('Pump_PWM', 8, 'percentage', 'Diagnostics'))
+MAESTRO_COMMANDS.append(MaestroCommand('3wayvalve', 9, 'onoff', 'Diagnostics'))
 
 def get_maestro_command(commandname):
     """Return Maestro command from the command list by name"""
@@ -59,22 +71,25 @@ def get_maestro_command(commandname):
         if commandname == MAESTRO_COMMANDS[i].name:
             return MAESTRO_COMMANDS[i]
         i += 1
-    return MaestroCommand('Unknown', -1, 'Unknown')
+    return MaestroCommand('Unknown', -1, 'Unknown', 'Unknown')
 
 def maestrocommandvalue_to_websocket_string(maestrocommandval):
     """Return string to write on the websocket by Maestro command and Value"""
     write = ""
     maestrocommand = maestrocommandval.command
-    if maestrocommand.name == "GetInfo":
-        write = "C|RecuperoInfo"
+    if maestrocommand.commandcategory == "GetInfo":
+        write = "C|RecuperoInfo"           
     else:
-        write = "C|WriteParametri|"
-
+        if maestrocommand.commandcategory == "Diagnostics":
+            write = "C|Diagnostica|"
+        else:
+            write = "C|WriteParametri|"
+        
         if maestrocommandval.value == "ON":
             maestrocommandval.value = 1
         elif maestrocommandval.value == "OFF":
             maestrocommandval.value = 0
-        
+
         writevalue = float(maestrocommandval.value)
         if maestrocommand.commandtype == 'temperature':
             writevalue = int(writevalue*2)
@@ -88,5 +103,11 @@ def maestrocommandvalue_to_websocket_string(maestrocommandval):
             writevalue = int(writevalue)
             if writevalue != 1:
                 writevalue = 0
+        elif maestrocommand.commandtype == "percentage":
+            writevalue = int(writevalue)
+            if writevalue > 100:
+                writevalue = 100
+            elif writevalue < 0:
+                writevalue = 0                            
         write += str(maestrocommand.maestroid) + "|" + str(writevalue)
     return write
