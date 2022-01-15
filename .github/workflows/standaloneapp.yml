@@ -19,8 +19,9 @@ jobs:
         python-version: 3.7
     - name: Install dependencies
       run: |
+        sudo sudo apt-get update
         sudo apt-get install build-essential \
-          libsystemd-dev
+          libsystemd-dev --fix-missing
         python -m pip install --upgrade pip 
         pip install flake8 pytest wheel 
         pip install setuptools
