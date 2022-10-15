@@ -111,7 +111,7 @@ def on_connect_mqtt(client, userdata, flags, rc):
 
 def on_disconnect_mqtt(client, userdata, rc):
     if rc != 0:
-        logger.info("MQTT: Unexpected disconnectiong -> try to reconnect...")
+        logger.info("MQTT: Unexpected disconnection -> try to reconnect...")
 
 def on_message_mqtt(client, userdata, message):
     try:
@@ -301,5 +301,5 @@ if __name__ == "__main__":
         socket_reconnect_count = socket_reconnect_count + 1
         logger.info("Socket Reconnection Count: " + str(socket_reconnect_count))
         if socket_reconnect_count>_WS_RECONNECTS_BEFORE_ALERT:
-            send_connection_status_message({"Status":"disconnected"})
+            socket_reconnect_count = 0
             socket_reconnect_count = 0
