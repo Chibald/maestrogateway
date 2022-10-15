@@ -16,6 +16,7 @@ class MaestroMessageType(Enum):
     WifiSonde = "0B"
     DatabaseName = "0D"
     SoftwareVersion = "0E"
+    StringData = "AA"
     Ping = "PING"
 
 
