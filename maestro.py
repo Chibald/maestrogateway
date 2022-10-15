@@ -301,5 +301,5 @@ if __name__ == "__main__":
         socket_reconnect_count = socket_reconnect_count + 1
         logger.info("Socket Reconnection Count: " + str(socket_reconnect_count))
         if socket_reconnect_count>_WS_RECONNECTS_BEFORE_ALERT:
-            socket_reconnect_count = 0
+            send_connection_status_message({"Status":"disconnected"})
             socket_reconnect_count = 0
