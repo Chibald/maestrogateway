@@ -187,6 +187,8 @@ def on_message(ws, message):
     message_array = message.split("|")
     if message_array[0] == MaestroMessageType.Info.value:
         process_info_message(message)
+    elif message_array[0] == MaestroMessageType.StringData.value:
+        logger.info('Date Time Set ' + str(message_array[1]))
     else:
         logger.info('Unsupported message type received !')
 
@@ -208,9 +210,13 @@ def on_open(ws):
         for i in range(360*4):
             time.sleep(0.25)
             while not CommandQueue.empty():
-                cmd = maestrocommandvalue_to_websocket_string(CommandQueue.get())
-                logger.info("Websocket: Send " + str(cmd))
-                ws.send(cmd)        
+                command = CommandQueue.get()
+                cmd = maestrocommandvalue_to_websocket_string(command)
+                if cmd != "":
+                    logger.info("Websocket: Send " + str(cmd))
+                    ws.send(cmd)
+                else:
+                    logger.error(f"Invalid command: {command.name} Value: {command.value}")
         logger.info('Closing Websocket Connection')
         ws.close()
     thread.start_new_thread(run, ())
