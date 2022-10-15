@@ -129,9 +129,9 @@ MAESTRO_INFORMATION.append(MaestroInformation(43, "Hours_To_Service", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(44, "Minutes_To_Switch_Off", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(45, "Number_Of_Ignitions", 'int'))
 MAESTRO_INFORMATION.append(MaestroInformation(46, "Active_Temperature", 'int'))
-MAESTRO_INFORMATION.append(MaestroInformation(47, "Celcius_Or_Fahrenheit", 'onoff'))
-MAESTRO_INFORMATION.append(MaestroInformation(48, "Sound_Effects", 'onoff'))
-MAESTRO_INFORMATION.append(MaestroInformation(49, "Sound_Effects_State", 'onoff')) ########### CHECK!!!
+MAESTRO_INFORMATION.append(MaestroInformation(47, "Pellet_Sensor", 'int')) # 0 no pellet sensor, 10 pellet sensor w/ enough fuel, 11 pellet sensor w/ no fuel
+MAESTRO_INFORMATION.append(MaestroInformation(48, "Celcius_Or_Fahrenheit", 'onoff')) 
+MAESTRO_INFORMATION.append(MaestroInformation(49, "Sound_Effects", 'onoff')) 
 MAESTRO_INFORMATION.append(MaestroInformation(50, "Sleep", 'onoff')) #########################
 MAESTRO_INFORMATION.append(MaestroInformation(51, "Mode", 'onoff'))  
 MAESTRO_INFORMATION.append(MaestroInformation(52, "WifiSondeTemperature1", 'int'))
