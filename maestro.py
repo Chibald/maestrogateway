@@ -111,7 +111,7 @@ def on_connect_mqtt(client, userdata, flags, rc):
 
 def on_disconnect_mqtt(client, userdata, rc):
     if rc != 0:
-        logger.info("MQTT: Unexpected disconnectiong -> try to reconnect...")
+        logger.info("MQTT: Unexpected disconnection -> try to reconnect...")
 
 def on_message_mqtt(client, userdata, message):
     try:
