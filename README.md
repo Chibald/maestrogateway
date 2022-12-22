@@ -186,6 +186,20 @@ to set temperature to 20.5 degrees:
 Maestro/Command/Temperature_Setpoint, 20.5
 ```
 
+to set the power level to P1:
+```
+Maestro/Command/Power_Level, 1
+```
+
+the the payload values for the power level are those before:
+```
+1=P1
+2=P2
+3=P3
+4=P4
+5=P5
+```
+
 ## Hardware Prerequisities
 The MCZ pellet stove has its own Wifi SSID. The easiest way to bridge this connection is by using a Raspberry pi with a wired ethernet to your lan, and to configure the onboard Wifi to connect to the SSID of the pellet stove. But any with two interface and at least one wifi interface to connect to the stove will work.
 
